@@ -4,7 +4,7 @@
 
 ## What are Operational Labs
 
-Operational Labs are hands-on failure scenarios that run inside a real Kubernetes cluster. Each lab injects a genuine fault condition — not a simulation — using a Helm chart deployed by `navyr-orchestrator`. Users are expected to diagnose and resolve the fault using Navyr's tooling (or kubectl directly). When the resolution condition is met, the verifier marks the lab as passed and issues a community badge.
+Operational Labs are hands-on failure scenarios that run inside ephemeral Kubernetes clusters provisioned on-demand by Navyr. Each lab injects a genuine fault condition — not a simulation — via a declarative YAML manifest applied by `navyr-orchestrator`. Users are expected to diagnose and resolve the fault using Navyr's tooling (or kubectl directly). When the resolution condition is met, the verifier marks the session as passed and issues a community badge.
 
 Labs are designed to build operational muscle memory for the most common Kubernetes failure patterns.
 
@@ -14,66 +14,107 @@ Labs are designed to build operational muscle memory for the most common Kuberne
 User clicks "Start Lab" in Navyr UI
         │
         ▼
-navyr-frontend → POST /api/v1/clusters/{id}/labs/{labId}/start
+navyr-frontend → POST /api/v1/labs/clusters        (provision ephemeral Kind cluster)
         │
         ▼
-navyr-orchestrator (Lab Engine)
-  1. Resolves the Helm chart for labId from navyr-helm/labs/
-  2. Calls navyr-agent tunnel → helm install <fault-chart> in cluster
-  3. Creates lab_session record (status: running)
-  4. Starts verifier loop (polls every 10s via agent tunnel)
+navyr-orchestrator (Kind Provisioner)
+  1. Runs: kind create cluster --name lab-<session-id>
+  2. Inserts row in lab_clusters (status: creating)
+  3. Polls until control-plane ready → status: ready
+  4. Returns kubeconfig (encrypted, stored in DB)
         │
         ▼
-navyr-agent → Helm install → fault workload deployed in cluster
+navyr-frontend → POST /api/v1/labs/clusters/{id}/scenarios/{scenarioId}/inject
+        │
+        ▼
+navyr-orchestrator (Scenario Engine)
+  1. Loads scenario YAML manifest from embedded FS
+  2. Applies manifest to ephemeral cluster via kubeconfig
+  3. Creates lab_sessions_v2 row (status: running, started_at: now)
+  4. Starts background verifier loop (polls every 10s)
         │
         ▼
 Verifier loop checks resolution condition
-  Pass → lab_session status = "passed"
+  Pass → session status = "passed"
+       → score calculated: 1000 − (elapsed_min × 10) − (hints × 50)
+       → lab_leaderboard upsert
        → POST /community/badges/grant (navyr-community)
-       → Community badge awarded
-  Fail → lab_session status = "failed" (if TTL exceeded)
+  Fail → session status = "failed"  (TTL exceeded, default 90min)
         │
         ▼
-User clicks "Stop Lab" → helm uninstall → fault workload removed
+Garbage collector (every 5min): destroy clusters past TTL
+  kind delete cluster --name lab-<session-id>
+  lab_clusters row → status: destroyed
 ```
 
-## Lab catalog
+## Kind Provisioner
 
-| Lab ID | Fault injected | What you must do | Resolution condition |
+Each lab session runs in a **dedicated ephemeral Kind cluster** — completely isolated from the user's registered clusters. This means:
+
+- Faults can affect node stability without risk to production
+- Users have full cluster-admin in their lab cluster
+- Clusters are automatically destroyed after the TTL (default 90 minutes) or when the user stops the lab
+
+### Cluster lifecycle states
+
+```
+creating → ready → active → destroyed
+                          → expired   (TTL exceeded, GC ran)
+                          → failed    (kind create failed)
+```
+
+### API
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/v1/labs/clusters` | Provision ephemeral Kind cluster |
+| `GET` | `/api/v1/labs/clusters/{id}/status` | Provisioning status |
+| `DELETE` | `/api/v1/labs/clusters/{id}` | Destroy cluster immediately |
+
+## Scenario Engine
+
+Scenarios are declarative YAML manifests embedded in the orchestrator binary. Each scenario defines:
+
+- **Fault manifest** — what to apply to inject the fault
+- **Verify function** — Go function that checks the resolution condition via K8s API
+- **Hints** — up to 3 progressive hints (each costs 50 points)
+
+### Built-in scenarios
+
+| ID | Fault injected | What you must do | Resolution condition |
 |---|---|---|---|
 | `crashloop-env` | Missing required env var → CrashLoopBackOff | Add the missing env var to the deployment | Pod `Running` + 0 restarts in last 60s |
-| `oomkilled` | Memory limit 32Mi but app allocates 128Mi | Increase memory limit to allow the app to run | Pod without OOMKill event in last GC cycle |
-| `image-pull-error` | Non-existent image tag (`app:does-not-exist`) | Fix the image tag to an existing one | Pod `Running` with valid image |
-| `pending-no-resources` | CPU request `10` cores (impossible to schedule) | Reduce CPU request to schedulable value | Pod `Running` |
-| `failed-rollout` | Readiness probe HTTP path returns 404 | Fix the readiness probe path | Deployment `Available` (all replicas ready) |
-| `node-pressure` | DaemonSet allocating all node memory | Remove or limit the DaemonSet | Node without `MemoryPressure` condition |
-| `pvc-unbound` | PVC requests a non-existent StorageClass | Create or fix the StorageClass binding | Pod `Running` with volume mounted |
-| `privileged-container` | Pod with `securityContext.privileged: true` | Remove the privileged flag | Finding absent in next Navyr security scan |
-| `cluster-admin-sa` | ServiceAccount bound to `cluster-admin` ClusterRole | Remove or replace the ClusterRoleBinding | Binding absent from cluster |
-| `secret-in-env` | Hardcoded API key in `env:` plain text | Replace with a `secretKeyRef` reference | Secret referenced correctly, no plain value in spec |
-| `no-network-policy` | Namespace with unrestricted pod communication | Apply a NetworkPolicy to restrict ingress/egress | NetworkPolicy present and enforced in namespace |
-| `rbac-escalation` | ServiceAccount can read secrets across namespaces | Scope the Role to minimum required namespace | Role bound only to required namespace and resources |
+| `oom-killer` | Memory limit 32Mi but app allocates 128Mi | Increase memory limit to allow the app to run | No OOMKilled event in last GC cycle |
+| `pending-pods` | CPU request `10` cores (impossible to schedule) | Reduce CPU request to schedulable value | Pod `Running` |
+| `rbac-lockout` | ServiceAccount bound to nonexistent Role | Create the missing Role or rebind to a valid one | ServiceAccount has valid working Role binding |
 
-## Lab lifecycle states
+### Scenario API
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/v1/labs/clusters/{id}/scenarios/{scenarioId}/inject` | Inject fault |
+| `POST` | `/api/v1/labs/clusters/{id}/scenarios/{scenarioId}/verify` | Run resolution verifier |
+| `GET` | `/api/v1/labs/clusters/{id}/scenarios/{scenarioId}/hint` | Get progressive hint (costs 50 pts) |
+
+## Scoring
 
 ```
-pending  → running  → passed
-                   → failed  (TTL exceeded without resolution)
-                   → stopped (user clicked Stop)
+score = 1000 − (elapsed_minutes × 10) − (hints_used × 50)
 ```
 
-Stopped labs are cleaned up immediately (helm uninstall). Failed labs are cleaned up after a configurable TTL.
+- Maximum score: **1000** (solve immediately, no hints)
+- Each minute costs 10 points
+- Each hint costs 50 points
+- Minimum score: 0 (no negative scores)
 
-## Verifier design
+Scores are persisted in `lab_leaderboard` and visible on the global leaderboard per scenario.
 
-Each lab has a dedicated verifier function in `navyr-orchestrator/internal/service/lab_service.go`. The verifier:
+### Score & Leaderboard API
 
-1. Polls the cluster via the agent tunnel at a fixed interval (10s)
-2. Checks the exact resolution condition for that lab
-3. Is idempotent — checking multiple times does not change state
-4. Times out after the lab TTL (configurable, default 60 minutes)
-
-Verifier checks use the same K8s API calls available to users — there is no special privileged check path.
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/v1/labs/score/{sessionId}` | Current session score |
+| `GET` | `/api/v1/labs/leaderboard/{scenarioId}` | Top-10 leaderboard |
 
 ## Community integration
 
@@ -81,10 +122,8 @@ On lab pass:
 - `navyr-orchestrator` calls `POST /community/badges/grant` on `navyr-community`
 - The badge is associated with the user's GitHub identity (if linked)
 - The badge appears on the user's public profile at `/community/profile/{username}`
-- The user's leaderboard entry (`leaderboard_entries`) is updated
+- The user's `lab_leaderboard` entry is updated with score, time, and scenario
 
-## Running labs in production clusters
+## Safety
 
-Labs are safe to run in non-production namespaces. By default, lab Helm charts deploy into an isolated namespace (`navyr-lab-<lab-id>`). This namespace is created on lab start and deleted on lab stop.
-
-**Never run labs in production namespaces.** The `node-pressure` lab in particular can affect node stability.
+Labs run in completely isolated ephemeral clusters — they have **no access** to the user's registered production clusters. The orchestrator never grants lab kubeconfigs to the gateway; they are used only internally for fault injection and verification.
