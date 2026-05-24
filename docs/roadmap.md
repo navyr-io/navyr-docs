@@ -32,6 +32,8 @@ As of 2026-05-24 the full backend stack is production-ready and deployed. The fr
 | Topology graph API (runtime / security / AI modes) | ✅ |
 | Operational Labs: 12 fault scenarios, verifier engine, badge on pass | ✅ |
 | Community: badges, leaderboard, GitHub OAuth, LinkedIn certificates | ✅ |
+| AIOps Core Engine: anomaly detection worker, RCA, remediations, risk scoring (migrations 000015-000018) | ✅ |
+| AIOps Live Engine: real cluster data via agent tunnel, health history worker, Intelligence WS bridge, composite score (migration 000019) | ✅ |
 | Frontend: all primary screens with real API integration | ✅ |
 | Docker Compose, Helm chart, Kustomize overlays, CI pipeline (multi-arch GHCR images) | ✅ |
 | navyr.io landing page (Next.js, Raspberry Pi + Cloudflare tunnel) | ✅ |

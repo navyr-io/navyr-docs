@@ -127,3 +127,15 @@ On lab pass:
 ## Safety
 
 Labs run in completely isolated ephemeral clusters — they have **no access** to the user's registered production clusters. The orchestrator never grants lab kubeconfigs to the gateway; they are used only internally for fault injection and verification.
+
+## Agent-mode Labs (Phase 7)
+
+Labs can also run against **existing clusters already connected to Navyr via agent mode** — not just Kind-provisioned ephemeral clusters. In this mode:
+
+- `POST /api/v1/clusters/{id}/labs/{labId}/start` provisions the lab in the specified registered cluster via agent tunnel.
+- The lab handler (`NewLabHandlerWithTunnel`) obtains a per-cluster K8s client via `tunnelRegistry.GetClient(clusterID)` instead of the global k8sService.
+- If the cluster is not reachable via tunnel, the endpoint returns `503 Service Unavailable` with message `cluster not reachable`.
+- `GET /api/v1/clusters/{id}/labs/{labId}/status` polls the verifier using the same tunnel client.
+- `DELETE /api/v1/clusters/{id}/labs/{labId}` cleans up lab resources on the correct cluster.
+
+This ensures lab operations always target the cluster selected by the user, regardless of how many clusters are registered in the org.

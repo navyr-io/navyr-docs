@@ -1,6 +1,6 @@
 # Intelligence
 
-**Last updated: 2026-05-24**
+**Last updated: 2026-05-24 (Phase 7 — AIOps bridge)**
 
 ## Overview
 
@@ -11,7 +11,9 @@ The Intelligence module provides a continuously-updated view of threats, anomali
 ```
 Signal sources
   ├── Security scanner (Trivy, Falco, RBAC risk, config risk)
-  ├── AIOps baseline engine (anomaly detection)
+  ├── AIOps engine — Anomaly Detection Worker (real cluster data via agent tunnel)
+  │     └── pod_crash_loop · pod_oomkill · pod_high_restarts
+  │         deployment_unavailable · node_pressure · node_not_ready
   ├── Compliance scoring engine
   └── Topology change events
           │
@@ -20,6 +22,8 @@ navyr-orchestrator (Intelligence Aggregator)
   ├── POST /api/v1/aiops/signals/ingest  ← inbound signals
   ├── GET  /api/v1/intelligence/summary  ← snapshot (HTTP polling fallback)
   └── WS   /api/v1/intelligence/stream   ← real-time push (preferred)
+        ├── snapshot includes active anomalies (field: "anomalies")
+        └── AIOps anomalies emitted as type="signal" on each WS tick
           │
           ▼
 navyr-frontend (SecurityIntelligencePage)
@@ -97,14 +101,21 @@ Server → Client: heartbeat    (every 15s to keep connection alive)
 }
 ```
 
-**`signal`** — sent when a new signal arrives or an existing one changes:
+**`signal`** — sent when a new signal arrives or an existing one changes. AIOps anomalies are emitted in this format:
 ```json
 {
   "type": "signal",
   "payload": {
-    "id": "uuid",
-    "action": "created",
-    "signal": { /* signal object */ }
+    "id": "anomaly-uuid",
+    "severity": "critical",
+    "signal_type": "pod_crash_loop",
+    "title": "CrashLoopBackOff detected",
+    "detail": "Pod api-server-xyz has restarted 12 times in the last 10 minutes",
+    "cluster_id": "cluster-uuid",
+    "cluster_name": "kind-prod",
+    "workload": "api-server-xyz",
+    "namespace": "production",
+    "detected_at": "2026-05-24T21:00:00Z"
   }
 }
 ```
