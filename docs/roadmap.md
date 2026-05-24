@@ -46,9 +46,9 @@ As of 2026-05-24 the full backend stack is production-ready and deployed. The fr
 | Phase 2 | Kubernetes coverage (full workload CRUD, shell, topology, security scanning, agent tunnel) | ✅ Complete |
 | Phase 3 | Premium foundation (SSO/OIDC, LDAP, TOTP, groups/grants, AI BYOK, webhooks, labs) | ✅ Complete |
 | Phase 4 | Security module (runtime security, SBOM, Cosign, policy enforcement, compliance) | 🔄 In progress |
-| Phase 5 | Labs & community (kind provisioner, scenario engine, scoring, leaderboard, certificates) | 🔄 Partial |
-| Phase 6 | Intelligence platform (observability, cluster health, FinOps, AI motor) | 🗓 Planned |
-| Phase 7 | Enterprise hardening (HA, air-gapped, KMS, SCIM, advanced governance) | 🗓 Planned |
+| Phase 5 | Intelligence platform (observability, cluster health, FinOps, AI motor) | 🗓 Planned |
+| Phase 6 | Enterprise hardening (HA, air-gapped, KMS, SCIM, advanced governance) | 🗓 Planned |
+| Phase 7 | Labs & community (kind provisioner, scenario engine, scoring — site feature, not core system) | 🗓 Planned |
 
 ---
 
@@ -146,25 +146,7 @@ As of 2026-05-24 the full backend stack is production-ready and deployed. The fr
 
 ---
 
-## Phase 5 — Labs & community
-
-| Item | Status |
-|---|---|
-| 12 operational fault scenarios (Helm charts) | ✅ |
-| Verifier engine (poll every 10s, TTL 60min) | ✅ |
-| Lab lifecycle: pending → running → passed / failed / stopped | ✅ |
-| Community badges (GitHub identity, leaderboard) | ✅ |
-| LinkedIn certificate (OpenBadges 2.0) | ✅ |
-| Lab UI v2 (catalog, active lab, AI hint, badge earned) | ✅ |
-| Kind Provisioner (ephemeral clusters per session) | ❌ Planned (Codex D3) |
-| Scenario Engine (multi-fault YAML) | ❌ Planned (Codex D4) |
-| Timer + scoring | ❌ Planned (Codex D5) |
-| Per-scenario leaderboard | ❌ Planned (Codex D6) |
-| Certificates with score + time + rank | ❌ Planned (Codex D7) |
-
----
-
-## Phase 6 — Intelligence platform (planned)
+## Phase 5 — Intelligence platform (planned)
 
 Five strategic epics, sequenced. Architectural decision (integration vs. new service) required before any backend work.
 
@@ -178,7 +160,7 @@ Five strategic epics, sequenced. Architectural decision (integration vs. new ser
 
 ---
 
-## Phase 7 — Enterprise hardening (planned)
+## Phase 6 — Enterprise hardening (planned)
 
 | Item | Notes |
 |---|---|
@@ -189,6 +171,26 @@ Five strategic epics, sequenced. Architectural decision (integration vs. new ser
 | Advanced governance (policy-as-code, workspace isolation) | 🗓 Planned |
 | Azure AD / Okta / Keycloak connectors | 🗓 Planned |
 | Executive dashboards + compliance PDF export | 🗓 Planned |
+
+---
+
+## Phase 7 — Labs & community (site feature)
+
+> **Scope note:** Operational Labs are a feature of the navyr.io website and community experience — not part of the core platform. Labs run against the user's own cluster via the agent tunnel; the lab engine backend (verifier, Helm charts) lives in `navyr-orchestrator` as a support service, but the product surface (UI, scoring, leaderboard, certificates) belongs to the site.
+
+| Item | Status |
+|---|---|
+| 12 operational fault scenarios (Helm charts) | ✅ |
+| Verifier engine (poll every 10s, TTL 60min) | ✅ |
+| Lab lifecycle: pending → running → passed / failed / stopped | ✅ |
+| Community badges (GitHub identity, leaderboard) | ✅ |
+| LinkedIn certificate (OpenBadges 2.0) | ✅ |
+| Lab UI v2 (catalog, active lab, AI hint, badge earned) | ✅ |
+| Kind Provisioner (ephemeral clusters per session) | 🗓 Planned |
+| Scenario Engine (multi-fault YAML) | 🗓 Planned |
+| Timer + scoring | 🗓 Planned |
+| Per-scenario leaderboard | 🗓 Planned |
+| Certificates with score + time + rank | 🗓 Planned |
 
 ---
 
