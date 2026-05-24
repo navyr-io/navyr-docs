@@ -21,6 +21,7 @@
 | [Editions](docs/editions.md) | OSS / Enterprise / SaaS — feature boundaries and detection |
 | [Operational Labs](docs/labs.md) | Fault injection engine — how labs work end to end |
 | [Development guide](docs/development.md) | Local setup, env vars, test users, debugging |
+| [Roadmap](docs/roadmap.md) | Current status, phase overview, active backlog, recent deliveries |
 
 ---
 
