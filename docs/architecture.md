@@ -2,6 +2,97 @@
 
 **Last updated: 2026-05-24**
 
+## Integrated architecture diagram
+
+The diagram below shows all Navyr components and every integration point between them — services, storage, in-cluster infrastructure, and external dependencies.
+
+```mermaid
+graph TB
+    %% ── External clients ──────────────────────────────────────
+    subgraph CLIENTS["External clients"]
+        BROWSER["Browser / API clients"]
+    end
+
+    %% ── Presentation ──────────────────────────────────────────
+    subgraph PRESENTATION["Presentation"]
+        FE["navyr-frontend :5173\nReact · TypeScript · Vite\nghcr.io/navyr-io/navyr-frontend"]
+    end
+
+    %% ── Gateway ───────────────────────────────────────────────
+    subgraph GATEWAY_SG["API Gateway  (only public entry point)"]
+        GW["navyr-gateway :8080\nJWT validation · RBAC enforcement\nPlan enforcement · Rate limiting\nAudit emission · AI BYOK proxy\nghcr.io/navyr-io/navyr-gateway"]
+    end
+
+    %% ── Core services ─────────────────────────────────────────
+    subgraph CORE["Core services  (internal network only)"]
+        AUTH["navyr-auth :8081\nIdentity · JWT issuance\nSSO/OIDC · LDAP sync\nTOTP 2FA · SCIM stub\nGroups · Grants · Webhooks\nBYOK AI providers\n21 migrations"]
+        BILL["navyr-billing :8082\nPlan enforcement\nUsage tracking\nAudit log + export\nRetention policy\n4 migrations"]
+        ORCH["navyr-orchestrator :8083\nKubernetes CRUD\nPod exec · Node ops\nSecurity scanning\nTopology graph\nApproval workflows\nLab Engine · AIOps\nAutomation · Observability\nAgent tunnel registry\n8 migrations"]
+        COMM["navyr-community :8084\nBadge engine\nLab completions\nLeaderboard\nGitHub OAuth\nAdmin panel\n2 migrations"]
+    end
+
+    %% ── Storage ───────────────────────────────────────────────
+    subgraph STORAGE["Storage"]
+        DB[("PostgreSQL :5432\n35+ tables · 35 migrations\n4 independent schemas")]
+        REDIS[("Redis :6379\nRate limit state\noptional")]
+    end
+
+    %% ── In-cluster (customer) ─────────────────────────────────
+    subgraph INCLUSTER["Customer Kubernetes cluster  (private VPC / NAT)"]
+        AGT["navyr-agent\nWebSocket tunnel client\nHealth :8090\nghcr.io/navyr-io/navyr-agent"]
+        K8SAPI["kube-apiserver\nKubernetes API"]
+        HELMRT["Helm 3\nfault lab charts"]
+    end
+
+    %% ── External services ─────────────────────────────────────
+    subgraph EXTERNAL["External services"]
+        SMTP["SMTP server\ninvites · password reset"]
+        LDAP["LDAP / Active Directory\ngroup sync"]
+        GITHUB["GitHub OAuth\ncommunity identity"]
+        AIPROVIDERS["AI providers\nOpenAI · Anthropic · Azure\nBedrock · Vertex · Ollama"]
+        KMS["AWS KMS\ncredential KEK encryption\noptional"]
+    end
+
+    %% ── Client → frontend → gateway ──────────────────────────
+    BROWSER -->|"HTTPS"| FE
+    FE -->|"REST + WebSocket\nAuthorization: Bearer JWT"| GW
+
+    %% ── Gateway → core services ───────────────────────────────
+    GW -->|"POST /auth/token/validate\n/auth/* proxy"| AUTH
+    GW -->|"POST /enforcement/check\nPOST /audit/events\n/api/v1/billing/* proxy"| BILL
+    GW -->|"/api/v1/* K8s + labs + aiops\nX-Internal-Context header"| ORCH
+    GW -->|"/community/* proxy"| COMM
+    GW <-->|"rate limit counters"| REDIS
+
+    %% ── Gateway → AI (BYOK completion proxy) ─────────────────
+    GW -->|"POST /api/v1/ai/complete\n(resolves provider via auth)"| AIPROVIDERS
+
+    %% ── Auth dependencies ─────────────────────────────────────
+    AUTH -->|"identity · sessions\ngroups · grants\nSSO · webhooks"| DB
+    AUTH -->|"invites\npassword reset"| SMTP
+    AUTH <-->|"group sync\nuser lookup"| LDAP
+    AUTH -->|"resolve BYOK config\nfor gateway AI proxy"| AIPROVIDERS
+
+    %% ── Billing dependencies ──────────────────────────────────
+    BILL -->|"plans · usage events\naudit log"| DB
+
+    %% ── Orchestrator dependencies ─────────────────────────────
+    ORCH -->|"cluster registry\nlab sessions\napprovals\nexec audit"| DB
+    ORCH <-->|"WebSocket tunnel\nK8s ops relay\n(outbound from cluster)"| AGT
+    ORCH -->|"badge grant\non lab pass"| COMM
+    ORCH -->|"DEK envelope encryption\nKEK rotation"| KMS
+
+    %% ── Community dependencies ────────────────────────────────
+    COMM -->|"badges · completions\nleaderboard · events"| DB
+    COMM <-->|"OAuth login + callback"| GITHUB
+
+    %% ── In-cluster ────────────────────────────────────────────
+    AGT -->|"in-cluster ServiceAccount\nall K8s API calls"| K8SAPI
+    AGT -->|"helm install/uninstall\nlab fault scenarios"| HELMRT
+```
+
+---
+
 ## System map
 
 ```

@@ -24,6 +24,79 @@
 
 ---
 
+## Integrated architecture
+
+> Full diagram: [docs/architecture.md → Integrated architecture diagram](docs/architecture.md#integrated-architecture-diagram)
+
+```mermaid
+graph TB
+    BROWSER["Browser / API clients"]
+
+    subgraph PRESENTATION["Presentation"]
+        FE["navyr-frontend :5173"]
+    end
+
+    subgraph GATEWAY_SG["API Gateway  ← only public entry point"]
+        GW["navyr-gateway :8080\nJWT · RBAC · Enforcement · Rate limit · AI proxy"]
+    end
+
+    subgraph CORE["Core services  (internal network)"]
+        AUTH["navyr-auth :8081\nIdentity · JWT · SSO · LDAP\nTOTP · Groups · Webhooks · BYOK"]
+        BILL["navyr-billing :8082\nPlan enforcement · Usage · Audit"]
+        ORCH["navyr-orchestrator :8083\nK8s CRUD · Security · Topology\nLab Engine · AIOps · Automation\nAgent tunnel registry"]
+        COMM["navyr-community :8084\nBadges · Labs · Leaderboard\nGitHub OAuth"]
+    end
+
+    subgraph STORAGE["Storage"]
+        DB[("PostgreSQL :5432")]
+        REDIS[("Redis :6379  optional")]
+    end
+
+    subgraph INCLUSTER["Customer cluster  (private / NAT)"]
+        AGT["navyr-agent\nWebSocket tunnel client"]
+        K8SAPI["kube-apiserver"]
+        HELMRT["Helm  lab charts"]
+    end
+
+    subgraph EXTERNAL["External services"]
+        SMTP["SMTP"]
+        LDAP["LDAP / AD"]
+        GITHUB["GitHub OAuth"]
+        AI["AI providers\nOpenAI · Anthropic · Azure · Bedrock · Ollama"]
+        KMS["AWS KMS  optional"]
+    end
+
+    BROWSER -->|HTTPS| FE
+    FE -->|"REST + WS · Bearer JWT"| GW
+
+    GW -->|"validate JWT · /auth/* proxy"| AUTH
+    GW -->|"enforcement · audit · /billing/* proxy"| BILL
+    GW -->|"/api/v1/* · X-Internal-Context"| ORCH
+    GW -->|"/community/* proxy"| COMM
+    GW <-->|rate limit| REDIS
+    GW -->|"AI BYOK completion"| AI
+
+    AUTH --> DB
+    AUTH --> SMTP
+    AUTH <--> LDAP
+    AUTH --> AI
+
+    BILL --> DB
+
+    ORCH --> DB
+    ORCH <-->|"WebSocket tunnel  outbound"| AGT
+    ORCH -->|badge grant| COMM
+    ORCH --> KMS
+
+    COMM --> DB
+    COMM <--> GITHUB
+
+    AGT -->|ServiceAccount| K8SAPI
+    AGT -->|helm install/uninstall| HELMRT
+```
+
+---
+
 ## What is Navyr
 
 Navyr is a **runtime operations platform** for Kubernetes — built for platform engineers, SREs, and DevOps teams who operate production clusters at scale.
