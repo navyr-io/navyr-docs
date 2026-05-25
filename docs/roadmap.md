@@ -1,6 +1,6 @@
 # Product Roadmap
 
-**Last updated: 2026-05-25 (Phase 8 delivered, Phase 9 kicked off)**  
+**Last updated: 2026-05-25 (Phase 8 ✅ | Phase 9 in progress — D0+D1+D2+SEC-01 delivered)**  
 **Source of truth:** this document supersedes all other roadmap references.
 
 ---
@@ -65,20 +65,20 @@ As of 2026-05-24 the full backend stack is production-ready and deployed. The fr
 | FinOps UI | FinOps page with cluster efficiency scoring | `FinOpsPage.tsx` — per-cluster efficiency rings (A–F), idle workloads, savings opportunities, top consumers. | ✅ 2026-05-25 |
 | AIOps UI | AIOps anomaly analysis page | `AIOpsPage.tsx` — org summary, cluster risk scores, severity-sorted anomaly feed, inline RCA + remediations. | ✅ 2026-05-25 |
 | Security Compliance + Attack Path | SecurityIntelligencePage enhancements | Attack Path tab: risk nodes (blast radius, risk factors), attack vectors, summary stats. Compliance tab: grade A–F, per-workload breakdown (already shipped). | ✅ 2026-05-25 |
-| P0-4 | Full componentization | Remaining workload screens → `RuntimeCard`; `OperationalSummary` on every screen; hard-coded colors → `var(--navyr-*)`; inline `ProgressBar` → central component | 🔄 Partial |
-| P0-7 | Dark theme across all cards | No `bg-white` / `bg-slate-50` visible in workspace screens | 🔄 Partial |
+| P0-4 | Full componentization | Remaining workload screens → `RuntimeCard`; `OperationalSummary` on every screen; hard-coded colors → `var(--navyr-*)` | ✅ 2026-05-25 |
+| P0-7 | Dark theme across all cards | No `bg-white` / `bg-slate-50` visible in workspace screens — all screens use design tokens | ✅ 2026-05-25 |
 
 #### P0-8: UI prototype alignment — screen map
 
 | HTML | Screen | Status |
 |---|---|---|
-| `01-overview.html` | `OverviewPage.tsx` | ❌ |
-| `02-workspace.html` | `ClusterWorkspacePage.tsx` + `AppShell.tsx` | ❌ |
+| `01-overview.html` | `OverviewPage.tsx` | ✅ 2026-05-25 |
+| `02-workspace.html` | `ClusterWorkspacePage.tsx` + colored Jump To icons | ✅ 2026-05-25 |
 | `03-workload-panel.html` | `WorkloadsPage.tsx` | ✅ |
 | `04-pod-inspector.html` | `WorkloadDetailPage.tsx` + `InspectorPanel.tsx` | ✅ |
-| `05-topology.html` | `TopologyPage.tsx` | 🔄 Partial |
-| `06-security.html` | `SecurityPage.tsx` + `SecurityInsightsPage.tsx` | 🔄 Partial |
-| `07-observability.html` | `ObservabilityPage.tsx` | 🔄 Partial |
+| `05-topology.html` | `TopologyPage.tsx` | ✅ 2026-05-25 |
+| `06-security.html` | `SecurityIntelligencePage.tsx` — ScoreRing + tabs (config/rbac/images/runtime/compliance/attack-path) | ✅ 2026-05-25 |
+| `07-observability.html` | `ObservabilityPage.tsx` — drill-down org→cluster→namespace→workload + integration badges | ✅ 2026-05-25 |
 | `08-signup.html` | `SignupPage.tsx` | ✅ |
 | `09-select-org.html` | `ClustersPage.tsx` | ✅ |
 | `10-deployments.html` | `WorkloadsPage.tsx` (deployments) | ✅ |
@@ -88,21 +88,27 @@ As of 2026-05-24 the full backend stack is production-ready and deployed. The fr
 
 ### P1 — Next sprint (frontend, Claude Code)
 
-| # | Item | Detail |
-|---|---|---|
-| P1-2 | Runtime Inventory cards | `RuntimeCard` + `OperationalSummary` aligned to reference screenshots |
-| P1-3 | Full breadcrumb | name + env + provider + region + K8s version |
-| P1-6 | Security screen | `RiskBadge` + risk score per workload — operational visual, not a static table |
-| P1-7 | Nodes heat map | CPU/mem/disk pressure heat map per node |
-| P1-8 | Automation visual state | Execution state + run history |
-| P1-9 | Empty states | Designed empty states on all screens |
-| P1-10 | Admin UI | Groups, members, grants CRUD using existing endpoints |
-| P1-12 | User menu | Editable profile, plan indicator |
-| P1-13 | Status color semantics | Standardize across all screens using `lib/status.ts` + `StatusBadge` |
-| P1-CR2 | Refactor `WorkloadDetailPage.tsx` | ✅ 22 `useState` → reducer (grouped state) |
-| P1-CR4 | Extract `NodeCard.tsx` | ✅ Standalone component in `components/` |
-| P1-CR5 | Named API types | ✅ `DeploymentRow`, `ClusterEvent` in `lib/api/workloads.ts` |
-| P1-CR7 | Split `ResourcesPage.tsx` (556 lines) | Sub-components per resource mode |
+| # | Item | Detail | Status |
+|---|---|---|---|
+| P1-1 | Tab bar in workspace | Horizontal tab bar in `ClusterWorkspacePage` | ✅ |
+| P1-2 | Runtime Inventory cards | `RuntimeCard` + `OperationalSummary` in all workload screens | ✅ |
+| P1-3 | Full breadcrumb | name + env + provider + region + K8s version | ✅ |
+| P1-5 | Billing redesign | Dark hierarchy with `MetricCard`, plan tier strip, ROI tiles | ✅ |
+| P1-6 | Security screen | `RiskBadge` + risk score per workload — operational visual | 🔄 In progress |
+| P1-7 | Nodes heat map | CPU/mem/disk pressure heat map per node | ✅ |
+| P1-8 | Automation visual state | Execution state + run history | ✅ |
+| P1-9 | Empty states | Designed empty states on all screens | ✅ |
+| P1-10 | Admin UI | Groups, members, grants CRUD — LDAP groups, sync, member management | ✅ |
+| P1-11 | Jobs & CronJobs | Correct columns + inspector | ✅ |
+| P1-12 | User menu | Editable profile, plan indicator | ✅ |
+| P1-13 | Status color semantics | Standardize across all screens using `lib/status.ts` + `StatusBadge` | 🔄 In progress |
+| P1-14 | Audit log critical events | Critical events highlighted with `var(--navyr-critical)` | ✅ |
+| P1-15 | Audit log time filter | Time range filter on audit log | ✅ |
+| P1-CR2 | Refactor `WorkloadDetailPage.tsx` | ✅ 22 `useState` → reducer (grouped state) | ✅ |
+| P1-CR3 | Split `AppShell.tsx` | `AppShell.tsx` → ~181 lines, `MainNav`/`ClusterNav`/`UserMenu` | ✅ |
+| P1-CR4 | Extract `NodeCard.tsx` | Standalone component in `components/` | ✅ |
+| P1-CR5 | Named API types | `DeploymentRow`, `ClusterEvent` in `lib/api/workloads.ts` | ✅ |
+| P1-CR7 | Split `ResourcesPage.tsx` (556 lines) | Reduced to ~88 lines with sub-components | ✅ |
 
 ---
 
@@ -111,7 +117,7 @@ As of 2026-05-24 the full backend stack is production-ready and deployed. The fr
 | # | Item | Owner | Status |
 |---|---|---|---|
 | P2-10 | CPU/Memory empty state when metrics-server not installed | Claude Code | ✅ 2026-05-25 |
-| P2-11 | Approvals UI — nav links (cluster + global), /approvals route; gateway fix pending (Phase 9 D0) | Claude Code | ✅ Frontend 2026-05-25 |
+| P2-11 | Approvals UI — nav + route + gateway fix (Phase 9 D0) | Claude Code + Codex | ✅ 2026-05-25 |
 | F3-19 | JIT LDAP provisioning — auto-create user on first LDAP login | Codex | ✅ Phase 8 D5 |
 
 ---
@@ -142,7 +148,7 @@ Five strategic epics. Backend foundation delivered; frontend integration ongoing
 
 | Epic | Description | Status |
 |---|---|---|
-| E1 — Observability | Cross-cluster metrics, logs, traces, SLOs, Prometheus/Loki/Tempo integration | 🗓 Planned |
+| E1 — Observability | Cross-cluster metrics, logs, traces, SLOs, Prometheus/Loki proxy via agent tunnel | 🔄 In progress (Phase 9 D1+D9) |
 | E2 — Cluster Health | Historical health score (15-min worker, 30d retention), composite score per cluster | ✅ Backend complete |
 | E3 — Security intelligence | Attack path, runtime correlation, compliance scoring | ✅ Backend complete |
 | E4 — FinOps | Resource efficiency per cluster + cross-cluster summary, top consumers, savings opportunities | ✅ Backend complete (stub) |
@@ -161,6 +167,29 @@ Five strategic epics. Backend foundation delivered; frontend integration ongoing
 | Advanced governance (policy-as-code, workspace isolation) | 🗓 Planned |
 | Azure AD / Okta / Keycloak connectors | 🗓 Planned |
 | Executive dashboards + compliance PDF export | 🗓 Planned |
+
+---
+
+## Phase 9 — Observability Foundation + AIOps Correlation + Enterprise Hardening
+
+**Status: 🔄 In progress (Codex)**
+
+| Deliverable | Description | Status |
+|---|---|---|
+| D0 HOTFIX | Gateway `resolveFeature` — register `/api/v1/approvals/*` routes | ✅ 2026-05-25 |
+| SEC-01 | Protect `/metrics` endpoint — basic auth via `METRICS_BASIC_AUTH_USER/PASS` env vars | ✅ 2026-05-25 |
+| D1 | Prometheus query proxy via agent tunnel — `GET /clusters/{id}/observability/prometheus/query` | ✅ 2026-05-25 |
+| D2 | Cross-cluster anomaly correlation engine — `correlated_anomalies` table + worker 5min | ✅ 2026-05-25 |
+| SEC-02 | Input validation on `cluster.name` — regex `^[a-zA-Z0-9][a-zA-Z0-9._-]{0,62}$` | ❌ Pending |
+| SEC-03 | CORS middleware before auth for OPTIONS requests | ❌ Pending |
+| D3 | Capacity forecasting — linear regression 7d health_history | ❌ Pending |
+| D4 | LDAP group-to-role mapping — `ldap_group_role_mappings` table + JIT auto-assign | ❌ Pending |
+| D5 | Worker leader election — `worker_locks` table + TryAcquireLock/Renew/Release | ❌ Pending |
+| D6 | Health score export JSON/CSV | ❌ Pending |
+| D7 | AlertManager webhook ingest | ❌ Pending |
+| D8 | Webhook delivery history API | ❌ Pending |
+| D9 | Loki log proxy via agent tunnel | ❌ Pending |
+| D10 | Community weekly challenges | ❌ Pending |
 
 ---
 
