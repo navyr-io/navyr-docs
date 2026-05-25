@@ -60,8 +60,11 @@ As of 2026-05-24 the full backend stack is production-ready and deployed. The fr
 
 | # | Item | Detail | Status |
 |---|---|---|---|
-| P0-8 | Align UI to HTML prototypes | Visual source of truth: `frontend-proposals/01`–`11`. 11/11 HTMLs aligned. | ✅ |
-| P0-9 | Intelligence Hub + sidebar restructure | `IntelligencePage.tsx` — AI Summary narrative, stat tiles, signal feed (critical/warnings/opportunities), cluster health strip. | ✅ 2026-05-25 |
+| P0-8 | Align UI to HTML prototypes | Visual source of truth: `frontend-proposals/01`–`11`. 11/11 HTMLs aligned. | ✅ 2026-05-25 |
+| P0-9 | Intelligence Hub + sidebar restructure | `IntelligencePage.tsx` — AI Summary narrative, stat tiles, signal feed, cluster health strip. | ✅ 2026-05-25 |
+| FinOps UI | FinOps page with cluster efficiency scoring | `FinOpsPage.tsx` — per-cluster efficiency rings (A–F), idle workloads, savings opportunities, top consumers. | ✅ 2026-05-25 |
+| AIOps UI | AIOps anomaly analysis page | `AIOpsPage.tsx` — org summary, cluster risk scores, severity-sorted anomaly feed, inline RCA + remediations. | ✅ 2026-05-25 |
+| Security Compliance + Attack Path | SecurityIntelligencePage enhancements | Attack Path tab: risk nodes (blast radius, risk factors), attack vectors, summary stats. Compliance tab: grade A–F, per-workload breakdown (already shipped). | ✅ 2026-05-25 |
 | P0-4 | Full componentization | Remaining workload screens → `RuntimeCard`; `OperationalSummary` on every screen; hard-coded colors → `var(--navyr-*)`; inline `ProgressBar` → central component | 🔄 Partial |
 | P0-7 | Dark theme across all cards | No `bg-white` / `bg-slate-50` visible in workspace screens | 🔄 Partial |
 
