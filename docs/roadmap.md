@@ -60,8 +60,8 @@ As of 2026-05-24 the full backend stack is production-ready and deployed. The fr
 
 | # | Item | Detail | Status |
 |---|---|---|---|
-| P0-8 | Align UI to HTML prototypes | Visual source of truth: `frontend-proposals/01`–`10`. Screen-by-screen mapping in CLAUDE.md. | 🔄 Partial |
-| P0-9 | Intelligence Hub + sidebar restructure | `IntelligencePage.tsx` (AI summary, stat tiles, cross-cluster signal feed). New sidebar: Intelligence first, Observability/Security global, Clusters second. Prototype: `11-intelligence.html`. | ❌ Not started |
+| P0-8 | Align UI to HTML prototypes | Visual source of truth: `frontend-proposals/01`–`11`. 11/11 HTMLs aligned. | ✅ |
+| P0-9 | Intelligence Hub + sidebar restructure | `IntelligencePage.tsx` — AI Summary narrative, stat tiles, signal feed (critical/warnings/opportunities), cluster health strip. | ✅ 2026-05-25 |
 | P0-4 | Full componentization | Remaining workload screens → `RuntimeCard`; `OperationalSummary` on every screen; hard-coded colors → `var(--navyr-*)`; inline `ProgressBar` → central component | 🔄 Partial |
 | P0-7 | Dark theme across all cards | No `bg-white` / `bg-slate-50` visible in workspace screens | 🔄 Partial |
 
@@ -79,7 +79,7 @@ As of 2026-05-24 the full backend stack is production-ready and deployed. The fr
 | `08-signup.html` | `SignupPage.tsx` | ✅ |
 | `09-select-org.html` | `ClustersPage.tsx` | ✅ |
 | `10-deployments.html` | `WorkloadsPage.tsx` (deployments) | ✅ |
-| `11-intelligence.html` | `IntelligencePage.tsx` *(new)* | ❌ |
+| `11-intelligence.html` | `IntelligencePage.tsx` | ✅ |
 
 ---
 
