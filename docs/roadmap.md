@@ -1,6 +1,6 @@
 # Product Roadmap
 
-**Last updated: 2026-05-25 (Phase 8 ✅ | Phase 9 in progress — D0+D1+D2+SEC-01 delivered | P1-13 ✅)**  
+**Last updated: 2026-05-25 (Phase 8 ✅ | Phase 9 in progress — D0+D1+D2+SEC-01 delivered | P1-6 ✅ P1-13 ✅ P2-12 ✅)**  
 **Source of truth:** this document supersedes all other roadmap references.
 
 ---
@@ -94,7 +94,7 @@ As of 2026-05-24 the full backend stack is production-ready and deployed. The fr
 | P1-2 | Runtime Inventory cards | `RuntimeCard` + `OperationalSummary` in all workload screens | ✅ |
 | P1-3 | Full breadcrumb | name + env + provider + region + K8s version | ✅ |
 | P1-5 | Billing redesign | Dark hierarchy with `MetricCard`, plan tier strip, ROI tiles | ✅ |
-| P1-6 | Security screen | `RiskBadge` + risk score per workload — operational visual | 🔄 In progress |
+| P1-6 | Security screen | `RiskBadge` + risk score per workload — operational visual | ✅ 2026-05-25 |
 | P1-7 | Nodes heat map | CPU/mem/disk pressure heat map per node | ✅ |
 | P1-8 | Automation visual state | Execution state + run history | ✅ |
 | P1-9 | Empty states | Designed empty states on all screens | ✅ |
@@ -118,6 +118,7 @@ As of 2026-05-24 the full backend stack is production-ready and deployed. The fr
 |---|---|---|---|
 | P2-10 | CPU/Memory empty state when metrics-server not installed | Claude Code | ✅ 2026-05-25 |
 | P2-11 | Approvals UI — nav + route + gateway fix (Phase 9 D0) | Claude Code + Codex | ✅ 2026-05-25 |
+| P2-12 | navyr-site visual verification — dark theme, no `href="#"`, Playwright audit | Claude Code | ✅ 2026-05-25 |
 | F3-19 | JIT LDAP provisioning — auto-create user on first LDAP login | Codex | ✅ Phase 8 D5 |
 
 ---
