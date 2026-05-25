@@ -1,6 +1,6 @@
 # Product Roadmap
 
-**Last updated: 2026-05-25 (Phase 9 ✅ complete — all D0-D10 delivered | SEC-02/03 deferred to Phase 10)**  
+**Last updated: 2026-05-25 (Phase 9 ✅ | P2-14 ✅ | E1 Observability ✅ | AIOps correlations UI ✅ | Phase 10 brief active)**  
 **Source of truth:** this document supersedes all other roadmap references.
 
 ---
@@ -119,6 +119,7 @@ As of 2026-05-24 the full backend stack is production-ready and deployed. The fr
 | P2-10 | CPU/Memory empty state when metrics-server not installed | Claude Code | ✅ 2026-05-25 |
 | P2-11 | Approvals UI — nav + route + gateway fix (Phase 9 D0) | Claude Code + Codex | ✅ 2026-05-25 |
 | P2-12 | navyr-site visual verification — dark theme, no `href="#"`, Playwright audit | Claude Code | ✅ 2026-05-25 |
+| P2-14 | Responsiveness — mobile/tablet/desktop/wide breakpoints | Claude Code | ✅ 2026-05-25 |
 | F3-19 | JIT LDAP provisioning — auto-create user on first LDAP login | Codex | ✅ Phase 8 D5 |
 
 ---
@@ -149,7 +150,7 @@ Five strategic epics. Backend foundation delivered; frontend integration ongoing
 
 | Epic | Description | Status |
 |---|---|---|
-| E1 — Observability | Cross-cluster metrics, logs, traces, SLOs, Prometheus/Loki proxy via agent tunnel | 🔄 In progress (Phase 9 D1+D9) |
+| E1 — Observability | Cross-cluster metrics, logs, traces, SLOs, Prometheus/Loki proxy via agent tunnel | ✅ 2026-05-25 — proxy backend + frontend panels (capacity forecast, Prometheus status, Loki log tail) |
 | E2 — Cluster Health | Historical health score (15-min worker, 30d retention), composite score per cluster | ✅ Backend complete |
 | E3 — Security intelligence | Attack path, runtime correlation, compliance scoring | ✅ Backend complete |
 | E4 — FinOps | Resource efficiency per cluster + cross-cluster summary, top consumers, savings opportunities | ✅ Backend complete (stub) |
