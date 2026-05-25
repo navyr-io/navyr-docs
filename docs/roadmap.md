@@ -1,6 +1,6 @@
 # Product Roadmap
 
-**Last updated: 2026-05-25**  
+**Last updated: 2026-05-25 (Phase 8 delivered, Phase 9 kicked off)**  
 **Source of truth:** this document supersedes all other roadmap references.
 
 ---
@@ -193,6 +193,40 @@ Five strategic epics. Backend foundation delivered; frontend integration ongoing
 | `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_COMMUNITY_URL` | Configure as secrets in navyr-io/site |
 | Revoke old PAT | Revoke at `github.com/settings/tokens` |
 | kind cluster unreachable | Re-register cluster using navyr-agent in agent mode (direct mode removed in migration 000009) |
+
+---
+
+## Recent deliveries — Phase 8: Reliability, Enterprise Identity & Intelligence Expansion (2026-05-25)
+
+| Delivery | Description |
+|---|---|
+| Intelligence summary cache | In-memory cache per org, TTL 45s, invalidated on new anomaly. Reused by WS stream. |
+| AI Gateway fallback chain | Model routing with priority ordering. Tries providers in sequence, returns structured error on all fail. Auth migration 000022. |
+| Approval email notifications | Internal endpoint enqueues approval request/outcome emails to auth outbox. |
+| Webhook delivery queue | `webhook_delivery_attempts` table (auth migration 000023). Worker with exponential backoff retry (3 attempts). |
+| JIT LDAP provisioning | Auto-create user on first valid LDAP login. `users.source` column + `ldap_configs.jit_provisioning` flag. Auth migration 000024. |
+| SCIM v2 core | Users + Groups provisioning (real implementation). `ServiceProviderConfig` and `Schemas` endpoints. `scim_handler.go`. |
+| Cert expiry detection | `cert_expiry` anomaly kind. Detects TLS certs expiring within 30 days via cluster secret inspection. |
+| BYOK via cluster secret | Agent reads K8s Secret `navyr-ai-key` from cluster. Source type `cluster_secret` exposed to gateway. |
+| Observability namespace enrichment | Namespaces endpoint now includes `cpu_requests`, `memory_requests`, and `top_consumers` per namespace via `observability_hierarchy.go`. |
+| Runbook generation engine | Deterministic runbook generation by `anomaly_kind`. `GET /clusters/{id}/aiops/anomalies/{id}/runbook`. `aiops_runbook.go`. |
+
+---
+
+## Phase 9 backlog (in progress — Codex)
+
+| # | Item | Service | Status |
+|---|---|---|---|
+| D1 | Prometheus query proxy via agent tunnel | orchestrator | 🔄 |
+| D2 | Cross-cluster anomaly correlation engine | orchestrator | 🔄 |
+| D3 | Capacity forecasting endpoint (7d linear regression) | orchestrator | 🔄 |
+| D4 | LDAP group-to-role mapping | auth | 🔄 |
+| D5 | Worker leader election (HA-safe locks) | orchestrator | 🔄 |
+| D6 | Health score export (JSON/CSV) | orchestrator | 🔄 |
+| D7 | AlertManager webhook ingest | orchestrator | 🔄 |
+| D8 | Webhook delivery history API | auth | 🔄 |
+| D9 | Loki log proxy via agent tunnel | orchestrator | 🔄 |
+| D10 | Community weekly challenges | community | 🔄 |
 
 ---
 
