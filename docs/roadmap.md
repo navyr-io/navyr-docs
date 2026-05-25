@@ -1,6 +1,6 @@
 # Product Roadmap
 
-**Last updated: 2026-05-25 (Phase 9 ✅ | P2-14 ✅ | E1 Observability ✅ | AIOps correlations UI ✅ | Phase 10 brief active)**  
+**Last updated: 2026-05-25 (Phase 9 ✅ | Phase 10 ✅ | P2-14 ✅ | E1 Observability ✅ | AIOps correlations UI ✅)**  
 **Source of truth:** this document supersedes all other roadmap references.
 
 ---
@@ -182,8 +182,8 @@ Five strategic epics. Backend foundation delivered; frontend integration ongoing
 | SEC-01 | Protect `/metrics` endpoint — basic auth via `METRICS_BASIC_AUTH_USER/PASS` env vars | ✅ 2026-05-25 |
 | D1 | Prometheus query proxy via agent tunnel — `GET /clusters/{id}/observability/prometheus/query` | ✅ 2026-05-25 |
 | D2 | Cross-cluster anomaly correlation engine — `correlated_anomalies` table + worker 5min | ✅ 2026-05-25 |
-| SEC-02 | Input validation on `cluster.name` — regex `^[a-zA-Z0-9][a-zA-Z0-9._-]{0,62}$` | ⚠️ Deferred — SEC-02/03 carried to Phase 10 brief |
-| SEC-03 | CORS middleware before auth for OPTIONS requests | ⚠️ Deferred — SEC-02/03 carried to Phase 10 brief |
+| SEC-02 | Input validation on `cluster.name` — regex `^[a-zA-Z0-9][a-zA-Z0-9._-]{0,62}$` | ⚠️ Deferred → Phase 10 |
+| SEC-03 | CORS middleware before auth for OPTIONS requests | ⚠️ Deferred → Phase 10 |
 | D3 | Capacity forecasting — linear regression 7d health_history | ✅ 2026-05-25 |
 | D4 | LDAP group-to-role mapping — `ldap_group_role_mappings` table + JIT auto-assign | ✅ 2026-05-25 |
 | D5 | Worker leader election — `worker_locks` table + TryAcquireLock/Renew/Release | ✅ 2026-05-25 |
@@ -192,6 +192,25 @@ Five strategic epics. Backend foundation delivered; frontend integration ongoing
 | D8 | Webhook delivery history API | ✅ 2026-05-25 |
 | D9 | Loki log proxy via agent tunnel | ✅ 2026-05-25 |
 | D10 | Community weekly challenges | ✅ 2026-05-25 |
+
+---
+
+## Phase 10 — Security Hardening + Observability/Reliability APIs
+
+**Status: ✅ Complete (2026-05-25)**
+
+| Deliverable | Description | Status |
+|---|---|---|
+| SEC-02 | `cluster.name` validation — regex `^[a-zA-Z0-9][a-zA-Z0-9._-]{0,62}$`, returns 400 on invalid input | ✅ 2026-05-25 |
+| SEC-03 | CORS middleware moved before JWT auth — OPTIONS preflight returns 200 without JWT | ✅ 2026-05-25 |
+| D1 | `/api/v1/clusters/{id}/capacity/forecast` gateway alias + series payload in orchestrator | ✅ 2026-05-25 |
+| D2 | `/api/v1/clusters/{id}/health/history` export endpoint — `format=json\|csv` via gateway | ✅ 2026-05-25 |
+| D3 | `/api/v1/aiops/correlations` simplified endpoint — correlated anomaly list for frontend consumption | ✅ 2026-05-25 |
+| D4 | LDAP group mappings routes exposed in gateway — `GET/POST/DELETE /ldap/group-mappings` (`feature=manage`) | ✅ 2026-05-25 |
+| D5 | `/api/v1/clusters/{id}/alertmanager/webhook` alias in gateway + strict payload validation in orchestrator | ✅ 2026-05-25 |
+| D6 | Worker lock renewal goroutine — prevents lock expiry during long-running operations | ✅ 2026-05-25 |
+
+**Frontend (Claude Code):** AIOps correlations panel (D3) + ObservabilityPage capacity forecast + Prometheus/Loki panels (E1) — all shipped in Phase 9/10 cycle.
 
 ---
 
