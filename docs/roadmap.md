@@ -99,9 +99,9 @@ As of 2026-05-24 the full backend stack is production-ready and deployed. The fr
 | P1-10 | Admin UI | Groups, members, grants CRUD using existing endpoints |
 | P1-12 | User menu | Editable profile, plan indicator |
 | P1-13 | Status color semantics | Standardize across all screens using `lib/status.ts` + `StatusBadge` |
-| P1-CR2 | Refactor `WorkloadDetailPage.tsx` | 22 `useState` → reducer (grouped state) |
-| P1-CR4 | Extract `NodeCard.tsx` | From inline `.map()` in `NodesPage.tsx` |
-| P1-CR5 | Named API types | `DeploymentRow`, `ClusterEvent`, etc. — no `Record<string, unknown>` in API returns |
+| P1-CR2 | Refactor `WorkloadDetailPage.tsx` | ✅ 22 `useState` → reducer (grouped state) |
+| P1-CR4 | Extract `NodeCard.tsx` | ✅ Standalone component in `components/` |
+| P1-CR5 | Named API types | ✅ `DeploymentRow`, `ClusterEvent` in `lib/api/workloads.ts` |
 | P1-CR7 | Split `ResourcesPage.tsx` (556 lines) | Sub-components per resource mode |
 
 ---
@@ -110,9 +110,9 @@ As of 2026-05-24 the full backend stack is production-ready and deployed. The fr
 
 | # | Item | Owner | Status |
 |---|---|---|---|
-| P2-10 | CPU/Memory empty state when metrics-server not installed | Claude Code | ❌ |
-| P2-11 | Approvals UI integration with dual-approval backend | Claude Code | 🔄 Partial |
-| F3-19 | JIT LDAP provisioning — auto-create user on first LDAP login | Claude Code + Codex | ❌ |
+| P2-10 | CPU/Memory empty state when metrics-server not installed | Claude Code | ✅ 2026-05-25 |
+| P2-11 | Approvals UI — nav links (cluster + global), /approvals route; gateway fix pending (Phase 9 D0) | Claude Code | ✅ Frontend 2026-05-25 |
+| F3-19 | JIT LDAP provisioning — auto-create user on first LDAP login | Codex | ✅ Phase 8 D5 |
 
 ---
 
