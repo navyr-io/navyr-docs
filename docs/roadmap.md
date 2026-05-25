@@ -1,6 +1,6 @@
 # Product Roadmap
 
-**Last updated: 2026-05-25 (Phase 8 ✅ | Phase 9 in progress — D0+D1+D2+SEC-01 delivered)**  
+**Last updated: 2026-05-25 (Phase 8 ✅ | Phase 9 in progress — D0+D1+D2+SEC-01 delivered | P1-13 ✅)**  
 **Source of truth:** this document supersedes all other roadmap references.
 
 ---
@@ -101,7 +101,7 @@ As of 2026-05-24 the full backend stack is production-ready and deployed. The fr
 | P1-10 | Admin UI | Groups, members, grants CRUD — LDAP groups, sync, member management | ✅ |
 | P1-11 | Jobs & CronJobs | Correct columns + inspector | ✅ |
 | P1-12 | User menu | Editable profile, plan indicator | ✅ |
-| P1-13 | Status color semantics | Standardize across all screens using `lib/status.ts` + `StatusBadge` | 🔄 In progress |
+| P1-13 | Status color semantics | Standardize across all screens using `lib/status.ts` + CSS design tokens | ✅ 2026-05-25 |
 | P1-14 | Audit log critical events | Critical events highlighted with `var(--navyr-critical)` | ✅ |
 | P1-15 | Audit log time filter | Time range filter on audit log | ✅ |
 | P1-CR2 | Refactor `WorkloadDetailPage.tsx` | ✅ 22 `useState` → reducer (grouped state) | ✅ |
