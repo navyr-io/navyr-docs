@@ -1,6 +1,6 @@
 # Product Roadmap
 
-**Last updated: 2026-05-25 (Phase 8 ✅ | Phase 9 in progress — D0+D1+D2+SEC-01 delivered | P1-6 ✅ P1-13 ✅ P2-12 ✅)**  
+**Last updated: 2026-05-25 (Phase 9 ✅ complete — all D0-D10 delivered | SEC-02/03 deferred to Phase 10)**  
 **Source of truth:** this document supersedes all other roadmap references.
 
 ---
@@ -173,7 +173,7 @@ Five strategic epics. Backend foundation delivered; frontend integration ongoing
 
 ## Phase 9 — Observability Foundation + AIOps Correlation + Enterprise Hardening
 
-**Status: 🔄 In progress (Codex)**
+**Status: ✅ Complete (2026-05-25)**
 
 | Deliverable | Description | Status |
 |---|---|---|
@@ -181,16 +181,16 @@ Five strategic epics. Backend foundation delivered; frontend integration ongoing
 | SEC-01 | Protect `/metrics` endpoint — basic auth via `METRICS_BASIC_AUTH_USER/PASS` env vars | ✅ 2026-05-25 |
 | D1 | Prometheus query proxy via agent tunnel — `GET /clusters/{id}/observability/prometheus/query` | ✅ 2026-05-25 |
 | D2 | Cross-cluster anomaly correlation engine — `correlated_anomalies` table + worker 5min | ✅ 2026-05-25 |
-| SEC-02 | Input validation on `cluster.name` — regex `^[a-zA-Z0-9][a-zA-Z0-9._-]{0,62}$` | ❌ Pending |
-| SEC-03 | CORS middleware before auth for OPTIONS requests | ❌ Pending |
-| D3 | Capacity forecasting — linear regression 7d health_history | ❌ Pending |
-| D4 | LDAP group-to-role mapping — `ldap_group_role_mappings` table + JIT auto-assign | ❌ Pending |
-| D5 | Worker leader election — `worker_locks` table + TryAcquireLock/Renew/Release | ❌ Pending |
-| D6 | Health score export JSON/CSV | ❌ Pending |
-| D7 | AlertManager webhook ingest | ❌ Pending |
-| D8 | Webhook delivery history API | ❌ Pending |
-| D9 | Loki log proxy via agent tunnel | ❌ Pending |
-| D10 | Community weekly challenges | ❌ Pending |
+| SEC-02 | Input validation on `cluster.name` — regex `^[a-zA-Z0-9][a-zA-Z0-9._-]{0,62}$` | ⚠️ Deferred — SEC-02/03 carried to Phase 10 brief |
+| SEC-03 | CORS middleware before auth for OPTIONS requests | ⚠️ Deferred — SEC-02/03 carried to Phase 10 brief |
+| D3 | Capacity forecasting — linear regression 7d health_history | ✅ 2026-05-25 |
+| D4 | LDAP group-to-role mapping — `ldap_group_role_mappings` table + JIT auto-assign | ✅ 2026-05-25 |
+| D5 | Worker leader election — `worker_locks` table + TryAcquireLock/Renew/Release | ✅ 2026-05-25 |
+| D6 | Health score export JSON/CSV | ✅ 2026-05-25 |
+| D7 | AlertManager webhook ingest | ✅ 2026-05-25 |
+| D8 | Webhook delivery history API | ✅ 2026-05-25 |
+| D9 | Loki log proxy via agent tunnel | ✅ 2026-05-25 |
+| D10 | Community weekly challenges | ✅ 2026-05-25 |
 
 ---
 
