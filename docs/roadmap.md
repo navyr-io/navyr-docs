@@ -1,6 +1,6 @@
 # Product Roadmap
 
-**Last updated: 2026-05-24**  
+**Last updated: 2026-05-25**  
 **Source of truth:** this document supersedes all other roadmap references.
 
 ---
@@ -110,22 +110,6 @@ As of 2026-05-24 the full backend stack is production-ready and deployed. The fr
 | P2-10 | CPU/Memory empty state when metrics-server not installed | Claude Code | ❌ |
 | P2-11 | Approvals UI integration with dual-approval backend | Claude Code | 🔄 Partial |
 | F3-19 | JIT LDAP provisioning — auto-create user on first LDAP login | Claude Code + Codex | ❌ |
-| D1 | Historical health score — 15-min worker + `metrics/history` endpoint | Codex | ❌ |
-| D6 | Lab service via agent tunnel — smoke test `POST /labs/crashloop-env/start` with tunnel | Codex | ❌ |
-
----
-
-## Codex next brief — D1–D7
-
-| # | Deliverable | Origin |
-|---|---|---|
-| D1 | Historical health score — migration + 15-min worker + `GET /clusters/{id}/metrics/history` | Brief 22b |
-| D2 | Lab service agent tunnel validation — smoke test per-cluster lab ops via tunnel | Bug fix |
-| D3 | Kind Provisioner service — create/destroy kind clusters per session | navyr-labs |
-| D4 | Scenario Engine — multi-fault scenarios in declarative YAML (4 scenarios minimum) | navyr-labs |
-| D5 | Timer + Scoring engine — real-time scoring with time penalties | navyr-labs |
-| D6 | Leaderboard per scenario | navyr-labs |
-| D7 | Certificates expanded — score + time + rank at completion | navyr-labs / D4 |
 
 ---
 
@@ -143,22 +127,23 @@ As of 2026-05-24 the full backend stack is production-ready and deployed. The fr
 | Runtime security (eBPF, Tetragon) | 🗓 Planned |
 | Policy enforcement (Kyverno / OPA Gatekeeper) | 🗓 Planned |
 | Compliance reports (CIS Benchmark, SOC 2, PCI-DSS) | 🗓 Planned |
-| Attack path visualization | 🗓 Planned |
-| Predictive risk scoring (AI-assisted) | 🗓 Planned |
+| Attack path visualization (`GET /clusters/{id}/security/attack-path`) | ✅ |
+| Predictive risk scoring (AIOps risk score per cluster) | ✅ |
+| Security compliance scoring per workload (`GET /clusters/{id}/security/compliance`) | ✅ |
 
 ---
 
-## Phase 5 — Intelligence platform (planned)
+## Phase 5 — Intelligence platform
 
-Five strategic epics, sequenced. Architectural decision (integration vs. new service) required before any backend work.
+Five strategic epics. Backend foundation delivered; frontend integration ongoing.
 
 | Epic | Description | Status |
 |---|---|---|
 | E1 — Observability | Cross-cluster metrics, logs, traces, SLOs, Prometheus/Loki/Tempo integration | 🗓 Planned |
-| E2 — Cluster Health | Historical health score, trending, degradation detection, proactive alerting | 🗓 Planned |
-| E3 — Security intelligence | Attack path, runtime correlation, compliance scoring | Partial (Phase 4) |
-| E4 — FinOps | Resource efficiency, cost estimation, right-sizing recommendations | 🗓 Planned |
-| E5 — AI motor | Incident correlation, RCA, remediation suggestions, runbook generation | 🗓 Planned |
+| E2 — Cluster Health | Historical health score (15-min worker, 30d retention), composite score per cluster | ✅ Backend complete |
+| E3 — Security intelligence | Attack path, runtime correlation, compliance scoring | ✅ Backend complete |
+| E4 — FinOps | Resource efficiency per cluster + cross-cluster summary, top consumers, savings opportunities | ✅ Backend complete (stub) |
+| E5 — AI motor | Anomaly detection, RCA engine, remediation generator, risk scoring, Intelligence WS stream | ✅ Backend complete |
 
 ---
 
@@ -188,11 +173,11 @@ Five strategic epics, sequenced. Architectural decision (integration vs. new ser
 | Community badges (GitHub identity, leaderboard) | ✅ |
 | LinkedIn certificate (OpenBadges 2.0) | ✅ |
 | Lab UI v2 (catalog, active lab, AI hint, badge earned) | ✅ |
-| Kind Provisioner (ephemeral clusters per session) | 🗓 Planned |
-| Scenario Engine (multi-fault YAML) | 🗓 Planned |
-| Timer + scoring | 🗓 Planned |
-| Per-scenario leaderboard | 🗓 Planned |
-| Certificates with score + time + rank | 🗓 Planned |
+| Kind Provisioner (ephemeral clusters per session, `POST /api/v1/labs/clusters`) | ✅ |
+| Scenario Engine (4 fault scenarios: crashloop-env, oom-killer, pending-pods, rbac-lockout) | ✅ |
+| Timer + scoring (formula: 1000 − elapsed_min×10 − hints×50) | ✅ |
+| Per-scenario leaderboard (`lab_leaderboard` table, ranking endpoint) | ✅ |
+| Certificates with score + time + rank | ✅ |
 
 ---
 
@@ -205,6 +190,22 @@ Five strategic epics, sequenced. Architectural decision (integration vs. new ser
 | `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_COMMUNITY_URL` | Configure as secrets in navyr-io/site |
 | Revoke old PAT | Revoke at `github.com/settings/tokens` |
 | kind cluster unreachable | Re-register cluster using navyr-agent in agent mode (direct mode removed in migration 000009) |
+
+---
+
+## Recent deliveries — Phase 5 / 6 / 7 (2026-05-24)
+
+| Delivery | Description |
+|---|---|
+| Labs Kind Provisioner | `POST /api/v1/labs/clusters` — provision ephemeral kind cluster per session. `lab_clusters` table (migration 000012), GC worker destroys expired clusters. |
+| Scenario Engine | 4 embedded fault scenarios (crashloop-env, oom-killer, pending-pods, rbac-lockout). `lab_sessions_v2` table (migration 000013). Inject → verifier loop → pass/fail. |
+| Timer + Scoring + Leaderboard | Score formula, `lab_leaderboard` upsert on pass (migration 000014), ranking endpoint. |
+| FinOps cross-cluster | `GET /api/v1/finops/summary` — aggregate efficiency score, top consumers, idle workloads, savings opportunities across all ready clusters. |
+| Intelligence WebSocket | `WS /api/v1/intelligence/stream` — snapshot on connect, incremental signal push, heartbeat, 50-conn/org cap, inactivity close. Gateway proxy with session validation. |
+| AIOps Core Engine | Anomaly detection worker (2-min interval, 5 anomaly kinds). RCA engine (deterministic rule-based, cached). Remediation generator with apply endpoint. Predictive risk scoring (0–100 formula). AIOps dashboard endpoints. Migrations 000015–000018. |
+| AIOps Live Engine | Health history worker (15-min, 30d retention, migration 000019). AIOps worker reads real cluster data via agent tunnel. Intelligence WS bridge: active anomalies emitted as signals. Lab handler uses per-cluster tunnel. Composite score `GET /clusters/{id}/score`. |
+| Security compliance scoring | `GET /clusters/{id}/security/compliance` — per-workload runAsNonRoot, readOnlyRootFilesystem, allowPrivilegeEscalation, resource limits, pinned tag, non-privileged. Grade A–F. |
+| Security attack path | `GET /clusters/{id}/security/attack-path` — nodes + edges for CVE, public exposure, missing NetworkPolicy, privileged container, ClusterRole binding. |
 
 ---
 
