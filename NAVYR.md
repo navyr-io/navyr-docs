@@ -417,7 +417,7 @@ A UI oculta automaticamente menus e ações para os quais o grupo não tem permi
 | Picker de clusters por nome | ❌ | Implementar |
 | Criador visual de Role/ClusterRole (matriz) | ❌ | Implementar |
 | Editor YAML de Role/ClusterRole | ❌ | Implementar |
-| Apply binding no cluster via agent | ❌ | Implementar (Codex) |
+| Apply binding no cluster via agent | ✅ Entregue 2026-05-26 (Codex D1/D2/D3) | `POST /clusters/{id}/rbac/apply-binding`, `GET /clusters/{id}/rbac/roles`, `DELETE /clusters/{id}/rbac/bindings/{name}` |
 
 **Critério de aceite:**
 - Criar grupo com permissão apenas `navyr:workloads:list` + `navyr:workloads:view` → membro só vê Workloads, nenhum outro menu
