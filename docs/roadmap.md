@@ -1,6 +1,6 @@
 # Product Roadmap
 
-**Last updated: 2026-05-25 (Phase 9 ✅ | Phase 10 ✅ | P2-14 ✅ | E1 Observability ✅ | AIOps correlations UI ✅)**  
+**Last updated: 2026-05-26 (Phase 11 ✅ — Security Module + Enterprise Hardening complete)**  
 **Source of truth:** this document supersedes all other roadmap references.
 
 ---
@@ -211,6 +211,23 @@ Five strategic epics. Backend foundation delivered; frontend integration ongoing
 | D6 | Worker lock renewal goroutine — prevents lock expiry during long-running operations | ✅ 2026-05-25 |
 
 **Frontend (Claude Code):** AIOps correlations panel (D3) + ObservabilityPage capacity forecast + Prometheus/Loki panels (E1) — all shipped in Phase 9/10 cycle.
+
+---
+
+## Phase 11 — Security Module + Enterprise Hardening
+
+**Status: ✅ Complete (2026-05-26)**
+
+| Deliverable | Description | Status |
+|---|---|---|
+| A1 | SCIM v2 real — Users + Groups CRUD, Bearer token auth, `scim_tokens` table (migration 000026) | ✅ 2026-05-26 |
+| A2 | AWS KMS provider — `KEKProvider` interface, `LocalKEKProvider` + `AWSKMSProvider` (`aws-sdk-go-v2`, selected via `KMS_PROVIDER` env var) | ✅ 2026-05-26 |
+| A3 | OIDC profiles — Azure AD, Okta, Keycloak pre-configured with `validate` endpoint | ✅ 2026-05-26 |
+| B1 | Policy violations API — detects Kyverno or OPA Gatekeeper via CRD presence, collects violations via agent tunnel | ✅ 2026-05-26 |
+| B2 | Compliance framework mapping — CIS K8s v1.8 (10 controls), SOC 2 (6 controls), PCI-DSS v4.0 (6 controls); maps existing `navyr_checks` to framework controls; export JSON/PDF | ✅ 2026-05-26 |
+| B3 | Tetragon runtime security — detect presence, collect eBPF events from `export-stdout` pod logs; augments `runtime-events` endpoint with `engine=tetragon\|auto` | ✅ 2026-05-26 |
+
+**Frontend (Claude Code):** Policy tab + Frameworks tab pre-built in `SecurityIntelligencePage` with mock data — hooks wired to Phase 11 endpoints, banners removed automatically when APIs go live.
 
 ---
 
