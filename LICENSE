@@ -1,0 +1,185 @@
+Navyr Software License
+Version 1.0 — 2026
+
+Copyright (c) 2026 Navyr Technologies. All rights reserved.
+
+---
+
+## 1. Definitions
+
+"Software" means the Navyr platform and all associated source code, documentation,
+and artifacts in this repository.
+
+"Self-hosted" means running the Software on infrastructure owned or controlled by
+the Licensee, not made available to third parties as a service.
+
+"Managed Service" means operating the Software on behalf of third parties who access
+it remotely, including as SaaS, hosted service, or managed platform.
+
+"Licensee" means the individual or legal entity exercising rights under this License.
+
+"Contributor" means any individual or legal entity that submits accepted contributions
+to this repository.
+
+---
+
+## 2. Free Use — Permitted without a commercial license
+
+The following uses are permitted at no cost:
+
+a) **Individual use** — personal, local, or experimental use by a natural person.
+
+b) **Internal self-hosted use** — running the Software for internal operations of
+   a company or organization on infrastructure they own or control, provided the
+   Software is not made available to third parties as a service.
+
+c) **Consulting installation** — installing and configuring the Software on the
+   client's own infrastructure on behalf of that client. The client must self-host;
+   the consultant may not host the Software and sell access to it.
+
+d) **Non-commercial and academic use** — use by public universities, non-profit
+   research institutions, open source projects, and communities with no commercial
+   purpose.
+
+   **Exception:** government agencies, public administrations (federal, state, or
+   municipal), state-owned enterprises, and public financial institutions are not
+   eligible for free use regardless of their public nature. These entities must
+   obtain an Enterprise or Partner license. Direct procurement inquiries are welcome
+   at licensing@navyr.io.
+
+e) **Evaluation** — evaluation of the Software for up to 30 days in a non-production
+   environment.
+
+---
+
+## 3. Enterprise License (EE) — Required for commercial advanced features
+
+A paid Enterprise License is required to use the following features in a commercial
+context:
+
+- SSO / OIDC / SAML authentication
+- LDAP / Active Directory / SCIM integration
+- FIDO2 / WebAuthn
+- Advanced RBAC (groups and grants per cluster/namespace)
+- Approval workflows
+- Audit retention policies and compliance export
+- KMS / envelope encryption for cluster credentials
+- Falco runtime security events
+- SBOM and supply chain verification
+- AI Security Insights
+- AI BYOK (Bring Your Own Key — external model providers)
+- High availability agent deployment
+- Air-gapped deployment
+- API Keys for automation
+- SLA support
+
+Enterprise Licenses are also required for:
+
+- Private universities and for-profit educational institutions using the Software
+  for commercial training or certification programs.
+
+Contact: **contact@navyr.io**
+
+---
+
+## 4. Partner License — Required for redistribution and hosting
+
+A paid Partner License is required if you:
+
+a) **Host for third parties** — operate the Software on your own infrastructure
+   and provide access to multiple clients, customers, or tenants.
+
+b) **Redistribute as a service** — embed the Software as part of a managed K8s
+   service, DevOps platform, or similar offering where your customers benefit from
+   the Software's functionality.
+
+c) **Bundle in a commercial product** — distribute the Software as part of a
+   commercial software product that is installed by the end customer on their
+   own infrastructure.
+
+Contributor Partners who have made significant accepted contributions to this
+repository may be eligible for discounted Partner licensing. Contact us for details.
+
+Contact: **contact@navyr.io**
+
+---
+
+## 5. Royalty Agreement — Required for cloud and SaaS distribution at scale
+
+A Royalty Agreement is required if you:
+
+a) **Operate as a cloud provider** — distribute the Software as a hosted, managed,
+   or marketplace offering through a public cloud platform (including but not limited
+   to AWS, Google Cloud, Microsoft Azure, DigitalOcean, or similar).
+
+b) **Operate a commercial SaaS** — provide access to the Software as a service to
+   an unlimited or large number of third-party customers where the Software is a
+   primary component of your commercial offering.
+
+c) **White-label at scale** — rebrand and distribute the Software to third parties
+   at a scale that constitutes a commercial distribution channel.
+
+Royalty terms are based on usage, number of end customers, and revenue. Contact us
+to negotiate terms.
+
+Contact: **contact@navyr.io**
+
+---
+
+## 6. Restrictions — Applies to all licensees
+
+Regardless of the license tier, the following are prohibited:
+
+a) **Competing fork** — you may not fork this Software, rebrand it, and distribute
+   it as a competing product or service that substitutes for Navyr commercially.
+
+b) **License circumvention** — you may not remove, modify, or circumvent any license
+   key enforcement, feature gating, or edition detection mechanisms in the Software.
+
+c) **Attribution removal** — you may not remove or alter copyright notices, trademarks,
+   or attribution references in the Software or its documentation.
+
+d) **Sublicensing** — you may not sublicense the Software to third parties beyond
+   what is explicitly permitted by your license tier.
+
+---
+
+## 7. Contributions
+
+By submitting a contribution (pull request, patch, documentation) to this repository,
+you grant Navyr Technologies a perpetual, worldwide, non-exclusive, royalty-free
+license to use, reproduce, modify, distribute, and sublicense your contribution as
+part of the Software under any license terms Navyr Technologies chooses, including
+future versions of this License or commercial licenses.
+
+You represent that you have the right to grant this license and that your contribution
+does not violate any third-party rights.
+
+---
+
+## 8. Disclaimer of Warranties
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE, AND NON-INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+---
+
+## 9. Governing Law
+
+This License shall be governed by and construed in accordance with the laws of Brazil,
+without regard to its conflict of law provisions.
+
+---
+
+## 10. Contact
+
+Navyr Technologies
+contact@navyr.io
+https://navyr.io
+
+For licensing inquiries: licensing@navyr.io
+For security disclosures: security@navyr.io
