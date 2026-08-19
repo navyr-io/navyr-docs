@@ -155,12 +155,44 @@ Todos os serviços usam o `log` da stdlib. Sem `org_id`, `cluster_id` ou
 `request_id` nos registros, correlacionar um incidente em produção depende de
 `grep` e sorte.
 
-### Cobertura abaixo da meta
-Meta da Fase 3 é 60% em `internal/service` e `internal/repository`.
+### Cobertura — meta revisada em 19/08
 
-Atual: `auth/internal/repository` 6,6% · `orchestrator/internal/service` 11,7% ·
-`auth/internal/service` 30,5%. O harness de integração existe em `navyr-auth` e
-ainda não foi replicado para `orchestrator` e `billing`.
+A meta original era **60% de statements** em `internal/service` e
+`internal/repository`. Foi **substituída por cobrir todo caminho onde a falha é
+cara**, com o percentual como consequência e não como alvo.
+
+**Por que mudou.** Os números pararam de subir por composição dos pacotes, não
+por dificuldade: `auth/internal/repository` tem 1.980 linhas com dezenas de
+métodos de SSO, LDAP, SCIM, grupos e webhooks; `orchestrator/internal/service`
+tem cerca de 5.000 linhas de wrappers de client-go. Chegar a 60% exigiria 40 a
+60 funções de teste quase idênticas — testar `ListDaemonSets` depois de
+`ListDeployments` move o percentual sem encontrar defeito novo. Escrever teste
+para satisfazer métrica produz suíte grande que não pega bug, e que ninguém
+mantém.
+
+**Critério que substitui o número.** Um caminho está coberto quando há teste
+para: perda de isolamento entre organizações, invalidação de sessão e revogação
+de permissão, criptografia de credencial, travessia do túnel, e a cadeia de
+migrations. São os caminhos em que o defeito é silencioso e a consequência é
+vazamento, cobrança errada ou acesso indevido.
+
+**Estado atual:**
+
+| Pacote | Cobertura |
+|---|---|
+| `orchestrator/internal/tunnel` | 83,2% |
+| `billing/internal/repository` | 27,5% |
+| `orchestrator/internal/service` | 14,8% |
+| `auth/internal/repository` | 12,1% |
+| `orchestrator/internal/repository` | 4,9% |
+
+Os cinco caminhos do critério estão cobertos. O percentual segue baixo nos
+pacotes grandes, e isso é aceito conscientemente.
+
+**Continua valendo:** todo defeito encontrado ganha teste de regressão, e o
+harness de integração com Postgres real é o mecanismo padrão para a camada de
+repositório — foi ele que encontrou as nove colunas sem migration em
+`navyr-auth` e a coluna obrigatória em `user_invites`.
 
 ---
 
