@@ -178,6 +178,48 @@ terceira foi descartada com um workflow de diagnóstico isolado, rodando em
 paralelo — em vez de uma hipótese por vez, que foi o que custou oito rodadas
 na Fase 2.
 
+### Ferramentas de análise não acompanham o toolchain — corrigido em 19/08
+
+Subir os 7 serviços para Go 1.26.6 — necessário porque helm 3.21.4 e
+k8s.io 0.36.x exigem 1.26 — quebrou **as duas** ferramentas de análise
+estática do pipeline. Nem `golangci-lint` (v2.12.2, de maio) nem `gosec`
+(v2.28.0, de julho) têm release compilada com 1.26.
+
+O `golangci-lint` falha de forma honesta, dizendo que a versão usada para
+compilá-lo é menor que a versão alvo do módulo.
+
+**O `gosec` falha de forma perigosa.** Ele não reprovava por achado de
+segurança: emitia `Golang errors in file` em todos os pacotes — ou seja, não
+analisava nada — e ainda assim imprimia `Issues : 0`. Só deu vermelho porque
+sai com código 1 nesse caso. Se saísse com 0, teríamos um SAST verde e
+completamente vazio, indistinguível de cobertura real. Depois da correção, o
+mesmo scan analisa 7 arquivos e 2.600 linhas só no billing.
+
+**Correção:** ambos passaram a ser compilados com o toolchain do próprio
+projeto, via `go install` da mesma versão fixada. A versão continua pinada e o
+`go install` verifica contra a checksum database. Voltar às actions quando
+saírem releases compiladas com 1.26.
+
+**Vale como padrão, não como caso isolado:** ao subir o toolchain, verificar se
+as ferramentas do pipeline acompanham — e desconfiar de ferramenta que passa a
+reportar zero achados logo após um bump.
+
+### `--with-deps` do Playwright travava o CI — corrigido em 19/08
+
+O job de E2E chegou a queimar 25 minutos sem rodar um único teste. A causa não
+era o download do browser, como supus duas vezes: era o `apt-get` embutido no
+`--with-deps`, que ficava em silêncio no `archive.ubuntu.com` até o timeout.
+
+O apt era dispensável desde o início — a imagem do runner já traz o Google
+Chrome instalado, então as bibliotecas de sistema que o Chromium precisa já
+estão presentes. `playwright install chromium` sem `--with-deps` elimina o
+passo instável.
+
+**Registro do erro de método:** as duas primeiras tentativas atacaram o
+download (cache, depois bifurcação por cache-hit). A segunda ainda introduziu
+uma regressão, derrubando PRs que já estavam verdes. Só ler o log resolveu — o
+que deveria ter sido o primeiro passo, não o terceiro.
+
 ### Agrupamento do Dependabot juntava majors — corrigido em 19/08
 
 O grupo `build` do `navyr-frontend` propôs cinco saltos de major num PR só
