@@ -154,16 +154,35 @@ Com 15,7% de cobertura nesse arquivo, o passo correto é cobrir o despacho de
 rotas com teste primeiro. Fazer o contrário é refatorar sem rede o único ponto
 público do produto.
 
-### E2E incompleto
-**Onde:** `navyr-frontend/tests/e2e`
+### E2E — fechado em 19/08, com cobertura perdida
 
-Os 4 specs percorrem 5 dos ~7 passos. As asserções finais falham porque os
-payloads mockados não batem com o que a tela de detalhe renderiza. O job roda e
-publica relatório, mas não bloqueia (`continue-on-error`).
+Os 4 specs passam ponta a ponta. O que estava quebrado não era o teste: os
+specs foram escritos contra uma versão anterior da aplicação e ficaram parados
+enquanto a UI evoluiu. A depuração expôs quatro defeitos reais, corrigidos na
+fonte e não no teste:
 
-Os seletores por texto continuam frágeis a mudança de copy. A correção
-estrutural é migrar para `data-testid`, como já foi feito nos cards de
-organização e de cluster.
+| Defeito | Onde | Correção |
+|---|---|---|
+| Rotas de workspace passaram a exigir escopo de organização, mas o login não propagava `org_id` — a barra lateral de cluster nunca montava em link direto | `AppShell.tsx` + contrato de login | mocks alinhados ao contrato real; comportamento da aplicação estava correto |
+| Estado do pod comunicado **apenas por cor** — sem texto equivalente (WCAG 1.4.1) | `WorkloadDetailPage.tsx` | indicador ganhou `role="img"` e `aria-label` com o status |
+| Linha de workload era `div` clicável sem papel, foco ou acionamento por teclado | `WorkloadsPage.tsx` | `role="button"`, `tabIndex`, `aria-pressed`, handler de `Enter`/`Espaço` |
+| Namespace da tela de rede vivia só em estado local: deep link e link compartilhado perdiam o filtro | `NetworkPage.tsx` | sincronizado com a query string, como já fazia a tela de workloads |
+
+**Cobertura que se perdeu junto com as telas.** Duas assertivas testavam
+funcionalidade que não existe mais e foram reescritas contra o comportamento
+atual, não remendadas:
+
+- **Paginação e seleção em massa de workloads** (`Página 1 de 3`,
+  `Selecionados: 1`, `Próxima`) — a tabela paginada virou lista completa com
+  seleção de linha única e painel de inspeção. Se a paginação voltar, precisa de
+  teste novo.
+- **Tela de "Recursos Genéricos"** — removida da aplicação. O spec ainda mocka
+  `/api/v1/resources**`, mock hoje sem consumidor.
+
+**O que continua aberto:** o job de E2E roda e publica relatório, mas não
+bloqueia (`continue-on-error`) — mesma limitação de plano Free descrita em
+"Gate de CI". Os specs cobrem um caminho feliz por fluxo; não há teste de erro,
+de permissão negada nem de sessão expirada.
 
 ### Logging não estruturado
 Todos os serviços usam o `log` da stdlib. Sem `org_id`, `cluster_id` ou
