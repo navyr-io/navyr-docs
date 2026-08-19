@@ -387,17 +387,33 @@ abrir PR para `containerd`, `golang.org/x/crypto` ou `monaco-editor`.
 
 ## Governança
 
-`LICENSE` e `SECURITY.md` existem apenas em `navyr-docs`. Faltam nos outros 11
-repositórios, junto com `CONTRIBUTING.md`, `CODEOWNERS`, `CHANGELOG.md` e
-templates de issue e PR.
+### Arquivos de governança — resolvido em 19/08
+
+`LICENSE`, `SECURITY.md`, `CONTRIBUTING.md` e `CODEOWNERS` existem agora nos 11
+repositórios; templates de issue e PR ficam no repo `.github` da organização,
+valendo para todos sem duplicação.
+
+A ausência de `LICENSE` era o caso mais desconfortável: sem licença explícita o
+padrão legal é "todos os direitos reservados" **por omissão**, não por decisão —
+o que não é a mesma coisa que declarar a licença que de fato vale. Aplicada a
+Navyr Software License v1.0, já vigente, sem tomar decisão nova.
+
+**Continua em aberto:** a separação open core, registrada como "em consideração"
+no `editions.md`. É decisão de negócio. Vira urgente se algum repositório for
+publicado — inclusive se essa for a saída para o teto de minutos de CI.
+
+Também em aberto: `CHANGELOG.md`, que só faz sentido junto das releases semver
+(item 4.5), e o CLA, sem o qual contribuição externa não pode ser aceita.
+
+### Documentação
 
 Sem ADRs e sem runbooks de incidente — os scripts em `navyr-deploy/scripts/ops`
 existem e não estão documentados.
 
-`docs/deployment.md` descreve um schema de values do Helm que não corresponde ao
-chart real. `openapi.yaml` não existe em `navyr-gateway` nem em `navyr-billing`,
-e a spec unificada em `navyr-deploy/spec` convive com as por serviço sem
-reconciliação.
+`openapi.yaml` não existe em `navyr-gateway` nem em `navyr-billing`, e a spec
+unificada em `navyr-deploy/spec` convive com as por serviço sem reconciliação.
+O `docs/deployment.md` foi corrigido em 19/08 — descrevia values que nunca
+existiram no chart.
 
 **Branch protection** não pode ser configurada: o plano Free da organização
 retorna 403 para repositório privado. O CI roda e reprova de forma visível, mas
