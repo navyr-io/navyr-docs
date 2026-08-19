@@ -2,6 +2,26 @@
 
 **Last updated: 2026-05-24**
 
+## Especificações OpenAPI
+
+Cada serviço mantém a sua, no próprio repositório — validadas com
+`redocly lint`. Este documento cobre as convenções; o contrato de cada
+endpoint está nas specs.
+
+| Serviço | Spec | Paths |
+|---|---|---|
+| gateway | [openapi.yaml](https://github.com/navyr-io/navyr-gateway/blob/main/openapi.yaml) | 6 |
+| auth | [openapi.yaml](https://github.com/navyr-io/navyr-auth/blob/main/openapi.yaml) | 17 |
+| billing | [openapi.yaml](https://github.com/navyr-io/navyr-billing/blob/main/openapi.yaml) | 21 |
+| orchestrator | [openapi.yaml](https://github.com/navyr-io/navyr-orchestrator/blob/main/openapi.yaml) | 48 |
+| community | [openapi.yaml](https://github.com/navyr-io/navyr-community/blob/main/openapi.yaml) | 3 |
+
+A do **gateway é curta de propósito**. Ele é fachada: proxia para os quatro
+serviços e documenta apenas o que serve diretamente, mais o **contrato
+transversal** — autenticação, `X-Internal-Context`, enforcement de plano,
+rate limiting e `X-Request-ID`. Duplicar os 89 paths dos outros serviços ali
+garantiria divergência entre as duas cópias.
+
 ## Base URL
 
 All client-facing API traffic goes through `navyr-gateway`:

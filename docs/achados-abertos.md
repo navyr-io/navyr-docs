@@ -427,8 +427,18 @@ Um terceiro, não corrigido: `production_preflight.sh` exige `rg` (ripgrep)
 instalado, dependência incomum para um preflight que roda em máquina de
 plantão.
 
-`openapi.yaml` não existe em `navyr-gateway` nem em `navyr-billing`, e a spec
-unificada em `navyr-deploy/spec` convive com as por serviço sem reconciliação.
+As specs OpenAPI foram completadas e indexadas em 19/08. O achado original
+dizia que `gateway` e `billing` não tinham spec; na verdade tinham, mas
+incompletas — o do gateway com 4 paths e o do billing com 13, sendo que 4
+deles eram caminhos `/api/v1/*` que o billing **não serve**, e faltavam 8
+rotas reais, incluindo o webhook do Stripe e toda a superfície de crédito de
+IA. Hoje: gateway 6, billing 21, com verificação programática de que nenhuma
+rota do código ficou de fora. As cinco specs passam no `redocly lint`.
+
+**Continua aberto:** a spec unificada em `navyr-deploy/spec/openapi.yaml`
+(3.278 linhas) convive com as por serviço sem reconciliação — são duas fontes
+para o mesmo contrato.
+
 O `docs/deployment.md` foi corrigido em 19/08 — descrevia values que nunca
 existiram no chart.
 
