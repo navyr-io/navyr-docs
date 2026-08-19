@@ -134,13 +134,66 @@ Três coisas que só apareceram porque o chart foi instalado de verdade, e que
   `global.databaseUrl`**, values que nunca existiram no chart. Quem seguisse a
   instrução instalaria com os segredos de exemplo sem perceber.
 
-**Continua aberto:** as tags em `values-prod.yaml` (`v0.1.0-20260501`) não foram
-verificadas contra o que existe publicado no `ghcr.io` — ver "Sem releases
-versionadas". E o HPA nunca foi exercido com carga real: foi validado apenas
+**Confirmado depois:** as tags em `values-prod.yaml` (`v0.1.0-20260501`) **não
+existem**. O registry publica apenas `main`, `latest` e `sha-<commit>` — não há
+nenhuma tag semver, porque releases versionadas ainda não foram feitas (ver
+"Sem releases versionadas"). Instalar com esse arquivo falha em `ImagePullBackOff`
+nos cinco serviços. Fixado em tags `sha-` reais até existir semver.
+
+**Continua aberto:** o HPA nunca foi exercido com carga real: foi validado apenas
 que os objetos são criados e apontam para os Deployments certos, com as métricas
 em `<unknown>` por falta de metrics-server no cluster de teste.
 
 ---
+
+### CI nunca rodou em PR do Dependabot — corrigido em 19/08
+
+**28 dos 36 PRs abertos do Dependabot não tinham CI nenhum.** Todos falhavam
+com `startup_failure`, antes de qualquer job iniciar. A fila não estava parada
+por falta de atenção: estava invisível. Não havia sinal algum de que as
+atualizações passavam ou quebravam, e o Dependabot foi instalado na Fase 2
+justamente para dar esse sinal — depois de 123 CVEs acumuladas por deriva
+silenciosa. O alarme estava mudo desde que foi instalado.
+
+**Causa.** Permissões de workflow são resolvidas na partida, para **todos** os
+jobs do grafo, antes de qualquer condição `if:` ser avaliada. Em execução
+disparada pelo Dependabot o `GITHUB_TOKEN` é limitado a leitura. O job de
+imagem dos workflows reutilizáveis pedia `packages: write` — e um único pedido
+de escrita acima do teto derruba a execução inteira.
+
+Isso não se resolve com `if:` no job, nem movendo a permissão do topo do
+arquivo para o job: em ambos os casos a permissão continua no grafo. A única
+saída é o arquivo avaliado num evento de pull request não conter escrita
+nenhuma.
+
+**Correção.** A publicação saiu para `publish-image.yml`, chamado apenas de um
+`publish.yml` com trigger de push. O `go-service.yml` e o `frontend.yml` ficaram
+só com validação, com `contents: read`. O scan de imagem em pull request foi
+preservado — é o que pega problema de imagem antes do merge.
+
+**Três hipóteses erradas antes da certa**, todas testadas contra o GitHub:
+permissão no chamador; job guardado por `if:` não reservaria permissão; e
+repositório privado do workflow reutilizável bloquearia o Dependabot. A
+terceira foi descartada com um workflow de diagnóstico isolado, rodando em
+paralelo — em vez de uma hipótese por vez, que foi o que custou oito rodadas
+na Fase 2.
+
+### Agrupamento do Dependabot juntava majors — corrigido em 19/08
+
+O grupo `build` do `navyr-frontend` propôs cinco saltos de major num PR só
+(TypeScript 5→7, Vite→8, ESLint→10, vitest→4, plugin-react→6). Quebrou no
+`npm ci` com `ERESOLVE`: o grupo subia `typescript` mas não
+`typescript-eslint`, que limita a versão de TS suportada — os padrões não
+casavam esse pacote.
+
+Os grupos agora só agregam `minor` e `patch`, que é o caso em que mover junto
+ajuda. Major vem em PR próprio, para ser avaliado com o custo de migração à
+vista.
+
+**Continua aberto:** os majors pendentes precisam de decisão individual —
+TypeScript 7, Vite 8, ESLint 10, Tailwind 3→4, Node 22→26 na imagem base, e
+`actions/checkout` 4→7. Tailwind 4 em particular é reescrita de configuração,
+não bump.
 
 ## Qualidade
 
