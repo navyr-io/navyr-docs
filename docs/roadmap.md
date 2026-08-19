@@ -1,5 +1,18 @@
 # Product Roadmap
 
+**Última revisão: 2026-08-19**
+
+> **Estado da profissionalização (agosto/2026).** As fases abaixo descrevem o
+> roadmap de produto. Em paralelo correu um trabalho de engenharia sobre a base:
+> migração multi-repo finalizada, os 11 achados SEC fechados, vulnerabilidades
+> alcançáveis de 123 para 8, pipeline de CI que de fato reprova, chart Helm
+> instalável e roteiro de demonstração reproduzível.
+>
+> O que **não** foi corrigido está em [Achados em aberto](achados-abertos.md) —
+> incluindo NetworkPolicy que bloqueia DNS, arquivos de 4 mil linhas com
+> cobertura baixa e token em query string.
+
+
 **Last updated: 2026-05-26 (Phase 11 ✅ — Security Module + Enterprise Hardening complete)**  
 **Source of truth:** this document supersedes all other roadmap references.
 
