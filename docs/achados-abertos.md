@@ -94,15 +94,39 @@ Quatro migrations não têm `.down.sql`.
 
 ## Infraestrutura
 
-### NetworkPolicy bloqueia DNS
-**Onde:** `navyr-helm/navyr-platform/templates/networkpolicy.yaml`
+### NetworkPolicy impedia a plataforma de subir — corrigido em 19/08
 
-A regra `backend-allow` libera egress apenas para Postgres:5432. Sem UDP/53,
-auth, billing e orchestrator não resolvem nome nenhum — nem entre si, nem para
-provedores de IA, KMS ou SMTP. **Com a policy aplicada, a plataforma não
-funciona.**
+Eram quatro defeitos independentes no mesmo arquivo, e o chart entregava a
+policy **ligada por padrão**:
 
-Não foi detectado antes porque o chart nunca tinha sido instalado.
+1. **Sem egress de DNS** em `gateway-allow` e `backend-allow`. Liberavam as
+   portas dos serviços e do Postgres, mas `navyr-postgres` é um nome — então
+   nem a regra do banco funcionava.
+2. **`navyr-community` e `navyr-frontend` sem policy nenhuma.** Só o
+   `default-deny` valia para eles, deixando-os sem egress algum.
+3. **Ingress do Postgres não incluía o community**, que usa banco desde a
+   Fase 0. NetworkPolicy exige as duas pontas: não basta a origem ter egress,
+   o destino precisa aceitar ingress. Foi o mais sutil dos quatro.
+4. **`{{- end }}` na linha 111 de 184**, deixando `redis-allow` e
+   `collector-allow` fora do condicional — aplicadas mesmo com a feature
+   desligada.
+
+Junto entrou egress externo para provedores de IA, KMS, OIDC, Stripe, SMTP e
+LDAP, com `except` negando faixas privadas e `169.254.0.0/16`. É defesa em
+profundidade para o mesmo SSRF já tratado no código: se a validação de URL
+falhar, a rede ainda barra o endpoint de metadados.
+
+**Por que passou despercebido até agora, e a correção de um relato meu:** a
+validação da Fase 4.2, que reportei como "13/13 pods 1/1", rodou no CNI padrão
+do kind — que **não aplica NetworkPolicy**. O teste passou sem testar. A
+verificação correta exige um CNI que aplique, e foi refeita com Calico: 13/13
+pods, gateway pronto (o `/ready` dele consulta os quatro serviços), e os
+bloqueios confirmados por teste negativo — pod sem rótulo da plataforma não
+alcança Postgres nem auth, e o endpoint de metadados está barrado.
+
+**Vale como padrão:** teste de controle de segurança precisa provar que o
+controle **bloqueia**, não só que o sistema sobe. Um teste que só verifica
+funcionamento passa igual quando o controle está inerte.
 
 ### Três caminhos de deploy paralelos — parcialmente resolvido em 19/08
 
