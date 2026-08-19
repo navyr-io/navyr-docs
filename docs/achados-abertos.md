@@ -127,7 +127,7 @@ Nome do chart, e todos os recursos usam prefixo `kubeops-`. Resíduo do rebrand.
 |---|---|---|
 | `orchestrator/internal/handler/kubernetes_handler.go` | 4.316 | **967** (dividido em 7) |
 | `gateway/cmd/server/main.go` | 4.349 | **2.904** (6 extraídos) |
-| `auth/internal/service/auth_service.go` | 3.808 | 3.808 — não tocado |
+| `auth/internal/service/auth_service.go` | 3.906 | **1.743** (6 extraídos) |
 | `orchestrator/cmd/server/main.go` | 3.033 | 3.033 — não tocado |
 | `frontend/src/screens/SettingsPage.tsx` | 1.864 | 1.864 — não tocado |
 
@@ -136,6 +136,12 @@ mesmo pacote, sem alterar assinatura nem corpo. A forma foi escolhida por ser
 verificável — Go recusa declaração duplicada, então compilar já prova que nada
 foi copiado em dobro, e a cobertura permanecer idêntica prova que nenhum caminho
 de execução mudou.
+
+**Efeito colateral em `navyr-auth`.** A divisão por domínio deixou visível a
+fronteira entre a edição livre e a enterprise: LDAP, SSO, SCIM, grupos e grants
+somam cerca de 1.760 linhas agora isoladas em arquivos próprios. Se a separação
+open core for adotada, o trabalho neste repositório — que era o mais pesado —
+deixa de ser desembaraçar código e passa a ser mover arquivos.
 
 **O que falta no gateway, e por quê.** A função `main()` sozinha tem 794 linhas,
 quase todas na tabela de 132 rotas, e o despacho vive em `apiHandler` — uma
