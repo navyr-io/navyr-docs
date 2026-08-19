@@ -121,23 +121,32 @@ Nome do chart, e todos os recursos usam prefixo `kubeops-`. Resíduo do rebrand.
 
 ## Qualidade
 
-### Arquivos-deus
-| Arquivo | Linhas | Cobertura |
+### Arquivos-deus — parcialmente resolvido em 19/08
+
+| Arquivo | Antes | Depois |
 |---|---|---|
-| `navyr-orchestrator/internal/handler/kubernetes_handler.go` | 4.316 | 12,7% |
-| `navyr-gateway/cmd/server/main.go` | 4.330 | 15,4% |
-| `navyr-auth/internal/service/auth_service.go` | 3.808 | 30,5% |
-| `navyr-orchestrator/cmd/server/main.go` | 3.033 | 2,9% |
-| `navyr-frontend/src/screens/SettingsPage.tsx` | 1.864 | — |
+| `orchestrator/internal/handler/kubernetes_handler.go` | 4.316 | **967** (dividido em 7) |
+| `gateway/cmd/server/main.go` | 4.349 | **2.904** (6 extraídos) |
+| `auth/internal/service/auth_service.go` | 3.808 | 3.808 — não tocado |
+| `orchestrator/cmd/server/main.go` | 3.033 | 3.033 — não tocado |
+| `frontend/src/screens/SettingsPage.tsx` | 1.864 | 1.864 — não tocado |
 
-A lógica dentro de `main` não é testável, o que trava a cobertura. Dividir é o
-trabalho de **maior risco** do backlog: o `main.go` do gateway é o único ponto
-público, com JWT, RBAC e enforcement. Refatorar isso com 15% de cobertura é
-refatorar sem rede.
+A divisão feita foi **movimento puro**: declarações movidas entre arquivos do
+mesmo pacote, sem alterar assinatura nem corpo. A forma foi escolhida por ser
+verificável — Go recusa declaração duplicada, então compilar já prova que nada
+foi copiado em dobro, e a cobertura permanecer idêntica prova que nenhum caminho
+de execução mudou.
 
-**Ordem recomendada:** cobrir primeiro `orchestrator` e `billing` com o harness
-de integração, depois dividir, começando por `kubernetes_handler.go`, que é
-fatiável por grupo de recurso e tem risco menor que o gateway.
+**O que falta no gateway, e por quê.** A função `main()` sozinha tem 794 linhas,
+quase todas na tabela de 132 rotas, e o despacho vive em `apiHandler` — uma
+closure que captura `httpClient`, as URLs dos serviços e os proxies do escopo de
+`main`. Extrair isso exigiria passar essas dependências por parâmetro ou struct,
+o que deixa de ser movimento puro e vira **mudança de assinatura no caminho de
+autenticação de toda a plataforma**.
+
+Com 15,7% de cobertura nesse arquivo, o passo correto é cobrir o despacho de
+rotas com teste primeiro. Fazer o contrário é refatorar sem rede o único ponto
+público do produto.
 
 ### E2E incompleto
 **Onde:** `navyr-frontend/tests/e2e`
