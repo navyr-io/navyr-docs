@@ -118,7 +118,15 @@ The core premise is that operating Kubernetes requires more than visibility. Nav
 | **Enterprise** | Teams with compliance, RBAC, and SSO requirements | Self-hosted with EE license |
 | **SaaS** | Managed Navyr cloud | navyr.io (hosted) |
 
-All editions share the same codebase. Edition capabilities are detected at runtime based on license and configuration. See [Editions](docs/editions.md).
+All editions share the same codebase. Edition capabilities are detected at
+runtime based on license and configuration. See [Editions](docs/editions.md).
+
+**Licensing.** Navyr is source-available under the
+[Navyr Software License](LICENSE) — free for self-hosted non-commercial use,
+education and OSS projects; commercial redistribution and hosting-as-a-service
+require a separate agreement. It is **not** Apache 2.0. See
+[EDITIONS.md](EDITIONS.md) for the full matrix of permitted scenarios and
+[SECURITY.md](SECURITY.md) to report a vulnerability.
 
 ---
 

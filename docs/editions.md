@@ -1,20 +1,36 @@
 # Editions
 
-**Last updated: 2026-05-24**
+**Last updated: 2026-08-19**
+
+## Licensing
+
+Navyr is **source-available under a commercial license** — see [LICENSE](../LICENSE).
+Free use is granted for self-hosted, non-commercial, educational and open-source
+scenarios; commercial redistribution and hosting-as-a-service require a separate
+agreement. The full matrix of permitted scenarios is in [EDITIONS.md](../EDITIONS.md).
+
+> **Note on Apache 2.0.** Earlier revisions of this page described the Free
+> edition as Apache 2.0. That was never accurate: the codebase has always
+> shipped under the Navyr Software License. An open-core split — permissive
+> license for the core, commercial for the enterprise modules — is under
+> consideration but not decided, and would require separating the code, which
+> today is a single tree with runtime feature detection.
 
 ## Overview
 
-Navyr ships as a single codebase with three editions. Edition capabilities are detected at runtime based on the license key and environment configuration — there are no separate branches or forks.
+Navyr ships as a single codebase with three editions. Edition capabilities are
+detected at runtime based on the license key and environment configuration —
+there are no separate branches or forks.
 
-| Edition | Target | Distribution | License |
+| Edition | Target | Distribution | Licensing |
 |---|---|---|---|
-| **OSS** | Self-hosted, community users | Docker Compose / Helm, free | Apache 2.0 |
-| **Enterprise** | Teams with compliance requirements | Self-hosted with EE license key | Commercial |
+| **Free** | Self-hosted, non-commercial, education, OSS projects | Docker Compose / Helm, no cost | Navyr Software License |
+| **Enterprise** | Teams with compliance and SSO requirements | Self-hosted with EE license key | Navyr Software License, commercial terms |
 | **SaaS** | Managed service | navyr.io hosted | Subscription |
 
 ## Feature matrix
 
-| Feature | OSS | Enterprise | SaaS |
+| Feature | Free | Enterprise | SaaS |
 |---|---|---|---|
 | Cluster management (agent tunnel) | ✅ | ✅ | ✅ |
 | Full Kubernetes CRUD | ✅ | ✅ | ✅ |

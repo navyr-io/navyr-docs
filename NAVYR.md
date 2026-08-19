@@ -96,7 +96,21 @@ Runtime Explorer · workloads · pods · deployments · nodes · events · logs 
 
 ### Licenciamento
 
-Avaliar: Apache 2.0 inicialmente → BSL futuramente. Não usar MIT (protege monetização). Open Core com módulos enterprise fechados.
+**Situação atual:** o produto é source-available sob a Navyr Software License
+(ver `LICENSE`), com uso livre para self-hosted não comercial, educação e
+projetos OSS. Não é Apache 2.0.
+
+**Em avaliação, sem decisão tomada:** modelo open core — licença permissiva no
+núcleo e comercial nos módulos enterprise. Hoje isso não é possível sem
+trabalho: as features enterprise (SSO, LDAP, SCIM, grupos, aprovações, webhooks,
+KMS, Cosign, SBOM) estão entrelaçadas com o código base, principalmente em
+`navyr-auth`, e o gate é de runtime, não de compilação. Publicar o tree atual
+sob licença permissiva liberaria também o código enterprise, de forma
+irreversível.
+
+O caminho seria a separação por diretório no estilo GitLab — `ee/` com licença
+própria dentro do mesmo repositório, mantendo um build só. O esforço se
+concentra em `navyr-auth`, onde estão 10 das 13 features enterprise.
 
 ---
 
