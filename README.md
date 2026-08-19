@@ -21,6 +21,8 @@
 | [Editions](docs/editions.md) | OSS / Enterprise / SaaS — feature boundaries and detection |
 | [Operational Labs](docs/labs.md) | Fault injection engine — how labs work end to end |
 | [Development guide](docs/development.md) | Local setup, env vars, test users, debugging |
+| [Decisões de arquitetura (ADR)](docs/adr/README.md) | Por que o sistema é assim, e o que cada decisão custou |
+| [Runbooks](docs/runbooks/README.md) | Procedimentos de operação sob incidente |
 | [Achados em aberto](docs/achados-abertos.md) | Defeitos e riscos conhecidos ainda não corrigidos |
 | [Roadmap](docs/roadmap.md) | Current status, phase overview, active backlog, recent deliveries |
 

@@ -405,10 +405,27 @@ publicado — inclusive se essa for a saída para o teto de minutos de CI.
 Também em aberto: `CHANGELOG.md`, que só faz sentido junto das releases semver
 (item 4.5), e o CLA, sem o qual contribuição externa não pode ser aceita.
 
-### Documentação
+### Documentação — parcialmente resolvido em 19/08
 
-Sem ADRs e sem runbooks de incidente — os scripts em `navyr-deploy/scripts/ops`
-existem e não estão documentados.
+ADRs e runbooks escritos: `docs/adr/` cobre túnel do agente, criptografia de
+credenciais, multi-repo, modelo de edições e a separação de CI; `docs/runbooks/`
+cobre backup e restauração, reverter release, serviço que não fica pronto e
+agente desconectado.
+
+**Dois defeitos apareceram ao documentar os scripts de `scripts/ops`:**
+
+- `backup_postgres.sh` e `restore_postgres.sh` executam `docker compose exec db`
+  e **não funcionam na instalação Kubernetes**, que é o caminho de produção. O
+  runbook traz os comandos `kubectl` equivalentes, mas os scripts continuam
+  cobrindo só Compose.
+- `rollback_release.sh` tinha `ghcr.io/example` como registry padrão e listava
+  `navyr-executor-service`, serviço que não existe mais — o `docker tag` teria
+  falhado. Corrigido, e `community` e `collector`, que faltavam, foram
+  incluídos.
+
+Um terceiro, não corrigido: `production_preflight.sh` exige `rg` (ripgrep)
+instalado, dependência incomum para um preflight que roda em máquina de
+plantão.
 
 `openapi.yaml` não existe em `navyr-gateway` nem em `navyr-billing`, e a spec
 unificada em `navyr-deploy/spec` convive com as por serviço sem reconciliação.
