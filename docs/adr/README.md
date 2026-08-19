@@ -17,3 +17,4 @@ de por que se tentou o caminho anterior é o que evita repeti-lo.
 | [0003](0003-multi-repo.md) | Um repositório por serviço, em vez de monorepo | Aceita |
 | [0004](0004-modelo-de-edicoes.md) | Edições detectadas em runtime, com enforcement central | Aceita |
 | [0005](0005-ci-validacao-separada-de-publicacao.md) | Validação e publicação em workflows distintos | Aceita |
+| [0006](0006-helm-como-caminho-unico.md) | Helm como único caminho de deploy para Kubernetes | Aceita |

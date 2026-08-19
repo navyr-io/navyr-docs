@@ -128,16 +128,32 @@ alcança Postgres nem auth, e o endpoint de metadados está barrado.
 controle **bloqueia**, não só que o sistema sobe. Um teste que só verifica
 funcionamento passa igual quando o controle está inerte.
 
-### Três caminhos de deploy paralelos — parcialmente resolvido em 19/08
+### Três caminhos de deploy paralelos — resolvido em 19/08
 
-Helm, Kustomize em `k8s/` e o Compose em `navyr-deploy` descrevem a mesma
-plataforma de formas independentes. O que o Kustomize tinha a mais — probes e
-`securityContext` do Postgres — foi portado para o Helm na Fase 4.2, então a
-divergência que justificava manter os dois acabou.
+O Kustomize em `navyr-helm/k8s/` foi removido. O Helm é o único caminho para
+Kubernetes; o Compose permanece com escopo declarado de desenvolvimento local
+e demonstração, e não compete com ele porque não descreve o mesmo alvo.
 
-**Continua aberto:** aposentar o caminho Kustomize. Enquanto os dois existirem,
-qualquer correção precisa ser feita duas vezes, e foi assim que a divergência
-apareceu.
+Motivo e consequências no [ADR 0006](adr/0006-helm-como-caminho-unico.md),
+incluindo o que se perde: instalação sem Helm agora exige `helm template`, que
+abre mão do histórico de release e do `helm rollback` que o runbook de
+incidente usa.
+
+**Dois achados apareceram ao remover:**
+
+- A documentação descrevia `k8s/overlays/prod` como "production-hardened, PDB,
+  resource limits, NetworkPolicy". **Nenhum dos quatro existia ali** — o
+  overlay definia três variáveis de ambiente e nada mais. O hardening sempre
+  esteve no Helm. Quem escolhesse o Kustomize por confiar nessa descrição
+  instalaria a versão menos protegida achando que era a mais.
+- Os manifestos do `navyr-site` eram a única coisa no Kustomize sem
+  equivalente no Helm. Preservados em `navyr-helm/site/`, fora do chart de
+  propósito — o site tem imagem e ciclo de release próprios.
+
+**Continua aberto:** o `navyr-site` está sem lar definitivo. Pertence ao
+repositório `site`, junto do código que publica. E seus manifestos carregam a
+mesma dívida que o chart tinha antes de 19/08: sem probes, e `image: latest`
+sem tag fixada, o que impede saber o que está no ar e reverter.
 
 ### Fase 4.2 — o que fechou e o que ela revelou
 

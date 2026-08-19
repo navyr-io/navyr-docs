@@ -115,16 +115,33 @@ helm install navyr ./navyr-platform --set secrets.allowInsecureDefaults=true
 
 ---
 
-## Option 3: Kustomize
+## Removed: Kustomize
+
+The `k8s/` Kustomize path was retired on 2026-08-19. Helm is the single
+deployment path for Kubernetes — see
+[ADR 0006](adr/0006-helm-como-caminho-unico.md).
+
+This page previously described `k8s/overlays/prod` as "production-hardened,
+PDB, resource limits, NetworkPolicy". **None of the four existed there.** The
+prod overlay set three environment variables and nothing else — the hardening
+lived in the Helm chart the whole time.
+
+Environment differences that lived in the overlays are chart values now:
+
+| Overlay literal | Chart value |
+|---|---|
+| `APP_ENV` | `global.appEnv` |
+| `CLUSTER_VALIDATION_MODE` | `orchestrator.clusterValidationMode` |
+| `BILLING_DB_FALLBACK` | `billing.dbFallback` |
+
+If you need plain manifests without Helm installed in the cluster:
 
 ```bash
-kubectl apply -k k8s/overlays/prod
+helm template navyr navyr-platform/ -f your-values.yaml | kubectl apply -f -
 ```
 
-Overlays available:
-- `k8s/overlays/dev` — local kind/minikube, no TLS, relaxed limits
-- `k8s/overlays/staging` — staging environment
-- `k8s/overlays/prod` — production-hardened, PDB, resource limits, NetworkPolicy
+This gives up release history and `helm rollback`, which the
+[rollback runbook](runbooks/reverter-release.md) relies on.
 
 ---
 
