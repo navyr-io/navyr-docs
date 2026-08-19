@@ -104,18 +104,41 @@ funciona.**
 
 Não foi detectado antes porque o chart nunca tinha sido instalado.
 
-### Três caminhos de deploy paralelos
-**Onde:** `navyr-helm`
+### Três caminhos de deploy paralelos — parcialmente resolvido em 19/08
 
 Helm, Kustomize em `k8s/` e o Compose em `navyr-deploy` descrevem a mesma
-plataforma de formas independentes. Já divergem: o Kustomize é mais endurecido
-que o Helm em probes e securityContext.
+plataforma de formas independentes. O que o Kustomize tinha a mais — probes e
+`securityContext` do Postgres — foi portado para o Helm na Fase 4.2, então a
+divergência que justificava manter os dois acabou.
 
-**Correção:** consolidar no Helm — mas portando antes as correções que só
-existem no Kustomize.
+**Continua aberto:** aposentar o caminho Kustomize. Enquanto os dois existirem,
+qualquer correção precisa ser feita duas vezes, e foi assim que a divergência
+apareceu.
 
-### Chart ainda se chama `kubeops`
-Nome do chart, e todos os recursos usam prefixo `kubeops-`. Resíduo do rebrand.
+### Fase 4.2 — o que fechou e o que ela revelou
+
+Fechado no chart em 19/08: probes nos 8 Deployments, Postgres non-root (uid 70),
+ServiceAccount por serviço sem token da API montado, TLS opcional no Ingress,
+HPA para gateway e orchestrator, renomeação completa de `kubeops-` para
+`navyr-`, e recusa de instalar com os segredos de exemplo.
+
+Três coisas que só apareceram porque o chart foi instalado de verdade, e que
+`helm lint` e `helm template` não pegam:
+
+- **`PGDATA` na raiz do volume.** Com Postgres non-root o `initdb` precisa dar
+  `chmod` no diretório do mount, que não pertence ao usuário, e o container
+  entra em crashloop. Corrigido movendo para um subdiretório.
+- **`values-prod.yaml` apontava para `docker.io/erickdavi/kubeops-*`** — o
+  Docker Hub pessoal da era do monorepo, não o registry da organização.
+- **README e `deployment.md` documentavam `global.jwtSecret` e
+  `global.databaseUrl`**, values que nunca existiram no chart. Quem seguisse a
+  instrução instalaria com os segredos de exemplo sem perceber.
+
+**Continua aberto:** as tags em `values-prod.yaml` (`v0.1.0-20260501`) não foram
+verificadas contra o que existe publicado no `ghcr.io` — ver "Sem releases
+versionadas". E o HPA nunca foi exercido com carga real: foi validado apenas
+que os objetos são criados e apontam para os Deployments certos, com as métricas
+em `<unknown>` por falta de metrics-server no cluster de teste.
 
 ---
 

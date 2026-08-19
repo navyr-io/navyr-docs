@@ -59,61 +59,59 @@ REDIS_URL=redis://navyr-redis:6379
 Uses the `navyr-platform` chart from [navyr-helm](https://github.com/navyr-io/navyr-helm).
 
 ```bash
-# Add the chart repo (or use the local chart)
+# 1. Create the Secret with real values, outside the chart.
+kubectl create namespace navyr
+kubectl create secret generic navyr-secrets -n navyr \
+  --from-literal=jwt_secret="$(openssl rand -hex 32)" \
+  --from-literal=internal_context_signing_secret="$(openssl rand -hex 32)" \
+  --from-literal=ws_exec_ticket_secret="$(openssl rand -hex 32)" \
+  --from-literal=community_secrets_key="$(openssl rand -hex 16)" \
+  --from-literal=cluster_credential_encryption_key="$(openssl rand -hex 16)" \
+  --from-literal=postgres_user=postgres \
+  --from-literal=postgres_password="$(openssl rand -hex 16)" \
+  --from-literal=postgres_db=navyr \
+  --from-literal=auth_database_url="postgres://postgres:<PW>@navyr-postgres:5432/navyr?sslmode=disable" \
+  --from-literal=billing_database_url="postgres://postgres:<PW>@navyr-postgres:5432/navyr?sslmode=disable" \
+  --from-literal=community_database_url="postgres://postgres:<PW>@navyr-postgres:5432/navyr?sslmode=disable" \
+  --from-literal=orchestrator_database_url="postgres://postgres:<PW>@navyr-postgres:5432/navyr?sslmode=disable"
+
+# 2. Install pointing at it.
 helm install navyr ./navyr-platform \
   --namespace navyr \
-  --create-namespace \
-  -f navyr-platform/values-prod.example.yaml \
-  --set global.jwtSecret=<JWT_SECRET> \
-  --set global.databaseUrl=postgresql://navyr:<PW>@postgres:5432/navyr \
-  --set global.internalContextSecret=<INTERNAL_SECRET> \
-  --set global.credentialEncryptionKey=<CRED_KEY> \
-  --set global.wsTicketSecret=<WS_SECRET>
+  --set secrets.existingSecret=navyr-secrets \
+  --set ingress.host=navyr.example.com \
+  --set ingress.tls.enabled=true \
+  --set ingress.tls.secretName=navyr-tls
+```
+
+> `cluster_credential_encryption_key` must be **exactly 32 bytes** — the
+> `openssl rand -hex 16` above produces that. The chart validates before install.
+
+For a throwaway local cluster the example values work, but must be accepted
+explicitly:
+
+```bash
+helm install navyr ./navyr-platform --set secrets.allowInsecureDefaults=true
 ```
 
 ### Key Helm values
 
-```yaml
-global:
-  jwtSecret: ""               # required — must match across gateway, auth, orchestrator
-  internalContextSecret: ""   # required
-  credentialEncryptionKey: "" # required
-  wsTicketSecret: ""          # required
-  databaseUrl: ""             # required
-
-gateway:
-  replicas: 2
-  image:
-    tag: latest
-  rateLimiting:
-    enabled: false
-    redisUrl: ""
-
-auth:
-  smtp:
-    enabled: false
-    host: ""
-    port: 587
-    username: ""
-    password: ""
-    fromEmail: ""
-  totp:
-    encryptionKey: ""
-  aiProvider:
-    secretKey: ""
-
-ingress:
-  enabled: true
-  host: navyr.example.com
-  tls:
-    enabled: true
-    secretName: navyr-tls
-
-postgresql:
-  enabled: true   # set false to use external postgres
-  auth:
-    password: ""
-```
+| Value | Description |
+|---|---|
+| `secrets.existingSecret` | Name of a Secret created outside the chart. **Recommended.** When set, the chart generates no Secret at all. |
+| `secrets.allowInsecureDefaults` | Accept the example values. Install fails without this if any secret was left unchanged. Throwaway clusters only. |
+| `secrets.jwtSecret` | HS256 signing secret shared by gateway and auth |
+| `secrets.internalContextSigningSecret` | Signs the `X-Internal-Context` header |
+| `secrets.clusterCredentialEncryptionKey` | AES-256 key for cluster credentials — exactly 32 bytes |
+| `secrets.wsExecTicketSecret` | Signs the WebSocket exec ticket |
+| `databaseUrls.<service>` | Postgres DSN per service |
+| `images.<service>` | Image per service |
+| `autoscaling.gateway.enabled` | Gateway HPA. Requires metrics-server. When on, `replicaCount.gateway` is ignored. |
+| `autoscaling.orchestrator.enabled` | Same for the orchestrator |
+| `ingress.enabled` | Expose via Ingress |
+| `ingress.host` | Public hostname |
+| `ingress.tls.enabled` | Terminate TLS at the Ingress. Without it the JWT travels in the clear. |
+| `ingress.tls.secretName` | `kubernetes.io/tls` Secret, created outside the chart |
 
 ---
 
