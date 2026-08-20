@@ -9,12 +9,18 @@ Free use is granted for self-hosted, non-commercial, educational and open-source
 scenarios; commercial redistribution and hosting-as-a-service require a separate
 agreement. The full matrix of permitted scenarios is in [EDITIONS.md](../EDITIONS.md).
 
-> **Note on Apache 2.0.** Earlier revisions of this page described the Free
-> edition as Apache 2.0. That was never accurate: the codebase has always
-> shipped under the Navyr Software License. An open-core split — permissive
-> license for the core, commercial for the enterprise modules — is under
-> consideration but not decided, and would require separating the code, which
-> today is a single tree with runtime feature detection.
+> **Open core — decidido e executado em 20/08.** LDAP, SSO, SCIM, grupos e
+> grants são recursos da edição Enterprise, sob licença comercial
+> (`navyr-auth/LICENSE-EE`). O núcleo segue sob a licença do repositório.
+>
+> A separação é de **compilação**, não de configuração: `go build -tags oss`
+> produz um binário que não contém o código Enterprise. É verificável — zero
+> símbolos de `go-ldap` contra 309 na edição completa. Chamada a recurso
+> Enterprise na edição livre responde 402. Detalhes em
+> `navyr-auth/EDITIONS.md`.
+>
+> Revisões anteriores desta página descreviam a edição livre como Apache 2.0.
+> Nunca foi verdade: o código sempre saiu sob a Navyr Software License.
 
 ## Overview
 
