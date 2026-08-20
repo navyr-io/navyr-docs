@@ -79,16 +79,32 @@ Pode ser decisão consciente (o SDK do Helm não fala pelo túnel), mas contradi
 diferencial que a documentação vende. **Merece um ADR justificando ou uma
 revisão do desenho.**
 
-### Migrations sem versionamento
-**Onde:** todos os serviços com banco
+### Migrations sem versionamento — resolvido em 19/08
 
-Não existe tabela `schema_migrations`. A lista é descoberta em disco e
-reexecutada inteira a cada boot, dependendo de todo `CREATE` ter `IF NOT
-EXISTS`. Funciona, e é idempotente hoje — verificado. Mas uma migration futura
-que não seja idempotente quebra o serviço em todo restart, e o defeito só
-aparece no segundo boot.
+Existe `schema_migrations` nos quatro serviços com banco. Cada migration roda
+dentro da própria transação e é registrada com o checksum do arquivo. Falha no
+meio desfaz tudo e não registra nada.
 
-Quatro migrations não têm `.down.sql`.
+A bomba-relógio era esta: sem controle, toda migration reexecutava a cada boot,
+e o serviço só continuava de pé porque **todas** eram idempotentes. A primeira
+que não fosse quebraria o serviço em todo restart — e não no primeiro, o que
+tornaria difícil associar à causa. Quem escrevesse essa migration não teria
+como saber.
+
+Instalação existente não precisou de tratamento especial: na primeira subida a
+tabela está vazia, tudo roda como rodava, e fica registrado.
+
+**Dois achados no caminho:** `billing` e `orchestrator` ainda mantinham a lista
+de migrations **hardcoded no Go** — a mesma classe de defeito que deixou a
+000027 sem rodar no auth. Estavam em dia por sorte, não por desenho; passaram a
+descobrir em disco. E as 5 migrations sem `.down.sql` ganharam o par.
+
+O checksum detecta migration editada depois de aplicada, como aconteceu com a
+000021. É reportado em nível de erro mas **não** interrompe o boot: o dano, se
+houver, já está no banco, e derrubar o serviço não corrige nada.
+
+Coberto por teste de integração em `navyr-auth/cmd/server/migrations_test.go`,
+incluindo o negativo — migration que falha não pode ficar registrada.
 
 ---
 
