@@ -457,9 +457,27 @@ rotas reais, incluindo o webhook do Stripe e toda a superfície de crédito de
 IA. Hoje: gateway 6, billing 21, com verificação programática de que nenhuma
 rota do código ficou de fora. As cinco specs passam no `redocly lint`.
 
-**Continua aberto:** a spec unificada em `navyr-deploy/spec/openapi.yaml`
-(3.278 linhas) convive com as por serviço sem reconciliação — são duas fontes
-para o mesmo contrato.
+**Resolvido em 19/08.** A spec unificada foi aposentada depois de verificado
+que virou subconjunto: das suas 82 rotas, todas as 82 passaram a estar cobertas
+pelas specs por serviço, que trazem mais 20.
+
+As 4 que só existiam nela eram os caminhos que o **gateway transforma** —
+reescreve para o billing injetando o `tenant_id` do JWT, de modo que o cliente
+nunca passa tenant. Nenhuma spec de serviço as documentava porque nenhum
+serviço as serve daquela forma; foram para a spec do gateway.
+
+O teste de contrato, que validava a spec unificada, foi repontado para as cinco
+e ganhou uma regra nova: **reprova quando um tipo compartilhado diverge entre
+serviços**, comparando só o que é contrato e ignorando redação. Verificado nos
+dois sentidos — reprova com divergência injetada, passa sem ela.
+
+Ele encontrou 5 lacunas reais no processo: 11 operações do gateway sem `401`,
+o manifesto do agente sem o `403` que o handler devolve, e 4 rotas do auth sem
+resposta `default`.
+
+A regra do `GOVERNANCE.md` que exigia entrada na spec unificada apontava para
+outro repositório — inaplicável na prática, e violada por 14 rotas. Agora
+aponta para o `openapi.yaml` do próprio repositório.
 
 O `docs/deployment.md` foi corrigido em 19/08 — descrevia values que nunca
 existiram no chart.

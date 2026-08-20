@@ -72,7 +72,14 @@ O canal de comunicação é `.agents/`. Protocolo completo em `.agents/PROTOCOL.
 
 ## Regra 6 — Arquitetura e contratos
 
-- Nenhuma rota nova sem entrada no `spec/openapi.yaml`.
+- Nenhuma rota nova sem entrada no `openapi.yaml` **do próprio repositório**.
+  A spec unificada em `navyr-deploy/spec/openapi.yaml` foi aposentada em 19/08:
+  apontava para outro repositório, o que tornava a regra inaplicável, e foi
+  violada — 14 rotas existiam só nas specs por serviço.
+- Toda operação declara resposta `default`, e as sob `/api/v1/` declaram também
+  `401` e `403`. Verificado por
+  `navyr-deploy/tests/contract/test_openapi_contract.py`, que roda contra as
+  cinco specs e reprova quando um tipo compartilhado diverge entre serviços.
 - Nenhuma migration sem ser registrada na lista de startup do serviço.
 - Nenhuma feature flag ou backwards-compatibility shim sem justificativa documentada.
 - Mudanças no modelo de dados exigem migration versionada (`000XXX_descricao.up.sql`).
