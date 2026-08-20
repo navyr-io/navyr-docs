@@ -348,10 +348,16 @@ bloqueia (`continue-on-error`) — mesma limitação de plano Free descrita em
 "Gate de CI". Os specs cobrem um caminho feliz por fluxo; não há teste de erro,
 de permissão negada nem de sessão expirada.
 
-### Logging não estruturado
-Todos os serviços usam o `log` da stdlib. Sem `org_id`, `cluster_id` ou
-`request_id` nos registros, correlacionar um incidente em produção depende de
-`grep` e sorte.
+### Logging não estruturado — resolvido, registro estava desatualizado
+
+Os 7 serviços usam `log/slog` com saída JSON. Verificado em 19/08: zero
+arquivos importando o `log` da stdlib para logging de aplicação.
+
+Sobraram duas chamadas, ambas justificadas:
+`orchestrator/cmd/server/main.go:1896` usa `log.Fatal` no encerramento do
+processo, e `collector/internal/publish/helm.go:135` passa `log.Printf` como
+callback para `cfg.Init` do SDK do Helm, que exige essa assinatura. A segunda
+pode ser adaptada para escoar no slog; a primeira não vale o ruído.
 
 ### Cobertura — meta revisada em 19/08
 
