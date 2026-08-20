@@ -16,3 +16,4 @@ Regras destes documentos:
 | [Reverter uma release](reverter-release.md) | Deploy quebrou produção |
 | [Serviço não fica pronto](servico-nao-fica-pronto.md) | Pod em 0/1, readiness reprovando |
 | [Agente desconectado](agente-desconectado.md) | Cluster aparece registrado e não responde |
+| [Publicar uma release](publicar-release.md) | Cortar uma versão e verificar que ela existe |

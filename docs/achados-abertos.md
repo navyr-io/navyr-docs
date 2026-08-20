@@ -175,10 +175,16 @@ Três coisas que só apareceram porque o chart foi instalado de verdade, e que
   instrução instalaria com os segredos de exemplo sem perceber.
 
 **Confirmado depois:** as tags em `values-prod.yaml` (`v0.1.0-20260501`) **não
-existem**. O registry publica apenas `main`, `latest` e `sha-<commit>` — não há
-nenhuma tag semver, porque releases versionadas ainda não foram feitas (ver
-"Sem releases versionadas"). Instalar com esse arquivo falha em `ImagePullBackOff`
-nos cinco serviços. Fixado em tags `sha-` reais até existir semver.
+existiam**. O registry publicava apenas `main`, `latest` e `sha-<commit>`.
+Instalar com aquele arquivo dava `ImagePullBackOff` nos cinco serviços. Fixado
+em tags `sha-` reais.
+
+A infraestrutura de release semver foi montada em 19/08 — `CHANGELOG.md` nos 11
+repositórios e `release.yml` disparando em tag `vX.Y.Z`, que publica a imagem
+versionada e cria a GitHub Release a partir do changelog. **As tags ainda não
+foram criadas**, porque o CI está bloqueado pelo teto de minutos: uma tag cujo
+pipeline não roda produz release sem imagem, que é pior que não ter tag. Ver o
+[runbook de publicar release](runbooks/publicar-release.md).
 
 **Continua aberto:** o HPA nunca foi exercido com carga real: foi validado apenas
 que os objetos são criados e apontam para os Deployments certos, com as métricas
