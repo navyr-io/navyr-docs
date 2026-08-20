@@ -60,12 +60,28 @@ Vite. Exige verificação visual do editor.
 
 ## Correção e robustez
 
-### Nenhum serviço tem retry de conexão ao banco
-**Onde:** todos os serviços Go
+### Retry de conexão ao banco — resolvido em 20/08
 
-O boot faz `log.Fatalf` se o Postgres não estiver pronto. Em Docker Compose o
-`restart` recupera; em Kubernetes vira `CrashLoopBackOff` até o banco subir —
-recuperável, mas ruidoso e confuso para quem está diagnosticando outra coisa.
+Os quatro serviços com banco esperam o Postgres ficar disponível, com espera
+crescente até 60s, configurável por `DB_CONNECT_TIMEOUT`.
+
+O prazo é limitado de propósito: espera sem fim transforma DSN errado em "ainda
+subindo", e o pod fica de pé sem servir sem que o Kubernetes tenha como saber a
+diferença. Senha errada, autorização inválida e banco inexistente não esperam —
+não melhoram com tempo.
+
+**Um agravante que não estava no achado original:** `pgxpool.New` não conecta de
+fato, só analisa o DSN. A falha aparecia como erro de *migration*, apontando
+para o lugar errado — quem lesse o log procuraria defeito no SQL.
+
+**E um caso silencioso no billing:** com `BILLING_DB_FALLBACK=true`, ele caía em
+memória se o Postgres demorasse alguns segundos a subir, perdendo persistência
+sem avisar. Em Kubernetes, onde o Postgres do chart sobe junto, isso não é
+hipótese. Agora espera.
+
+Verificado contra Postgres real: com o banco subindo 15s depois do serviço, os
+quatro esperam e recuperam. Testes unitários cobrem a classificação de erro e o
+prazo, sem exigir Docker.
 
 ### `navyr-collector` reintroduz kubeconfig
 **Onde:** `navyr-collector/internal/publish/kubeconfig.go`
