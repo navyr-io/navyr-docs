@@ -141,17 +141,38 @@ Verificado contra Postgres real: com o banco subindo 15s depois do serviço, os
 quatro esperam e recuperam. Testes unitários cobrem a classificação de erro e o
 prazo, sem exigir Docker.
 
-### `navyr-collector` reintroduz kubeconfig
-**Onde:** `navyr-collector/internal/publish/kubeconfig.go`
+### Dependência de kubeconfig — eliminada em 20/08
 
-Obtém kubeconfig por cluster através da API interna do orchestrator, para o SDK
-do Helm operar. O agent tunnel foi construído justamente para a plataforma nunca
-precisar de kubeconfig do cluster do cliente — a migration `000009` removeu o
-modo direto.
+A plataforma alcança cluster **apenas** pelo túnel do agente. Não há mais
+caminho alternativo.
 
-Pode ser decisão consciente (o SDK do Helm não fala pelo túnel), mas contradiz o
-diferencial que a documentação vende. **Merece um ADR justificando ou uma
-revisão do desenho.**
+Havia três, e dois eram piores do que o achado original registrava:
+
+1. **O collector** obtinha kubeconfig do orchestrator para o SDK do Helm. Ao
+   investigar, o caminho estava **morto**: o orchestrator já fazia o deploy pelo
+   túnel, e o gateway roteava tudo para lá. Removidos os endpoints e o pacote
+   `internal/publish` — junto saíram 18 dependências de `helm.sh` e `k8s.io` do
+   `go.mod`.
+
+2. **Os clusters de lab** guardavam o kubeconfig do kind em coluna `TEXT` sem
+   cifragem: credencial de administrador em repouso. Agora percorrem o mesmo
+   caminho de um cliente — registram o cluster, emitem token, aplicam o
+   manifesto do agente e esperam a conexão de saída. Efeito secundário útil:
+   cada lab exercita o onboarding real, então uma quebra nele aparece antes de
+   chegar a um cliente.
+
+3. **O gerador de kubeconfig para o cliente** montava um arquivo apontando para
+   `https://kubernetes.default.svc` — alcançável só de dentro do cluster — com o
+   **JWT do Navyr** no lugar do token do Kubernetes. **Não autenticava em lugar
+   nenhum.** Removido endpoint, modelo, serviço e a tela que o consumia.
+
+O que sobra com "kubeconfig" no nome é `ToRawKubeConfigLoader`, exigência da
+interface do Helm, que devolve o `rest.Config` do túnel em memória sem tocar
+disco.
+
+Junto, o passo 2 do onboarding no frontend deixou de dizer "paste a kubeconfig
+or deploy the agent" — oferecia um caminho inexistente e contradizia o
+diferencial que a documentação vende.
 
 ### Migrations sem versionamento — resolvido em 19/08
 
