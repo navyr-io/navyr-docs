@@ -13,17 +13,29 @@ correspondentes; o backlog SEC-04..14 do `NAVYR.md` foi fechado na Fase 1.
 
 ## Segurança
 
-### Token em query string
-**Onde:** `navyr-orchestrator` (manifesto do agente), `navyr-auth` (callback SSO)
+### Token em query string — parcialmente resolvido em 20/08
 
-O endpoint de manifesto autentica por `?token=` e o redirect de SSO devolve
-`sso_token`, `refresh_token` e e-mail na query string. Query string vaza para
-access log de proxy, histórico do navegador e cabeçalho `Referer` de qualquer
-recurso externo que a página carregue.
+**Manifesto do agente: resolvido.** O token vai em `Authorization: Bearer`. O
+handler já aceitava cabeçalho desde sempre — só a interface montava a URL com
+`?token=`, em três lugares. A query string passou a ser **recusada** com
+mensagem explicando a troca; aceitar os dois deixaria o inseguro vivo por
+inércia.
 
-**Correção:** mover para cabeçalho no manifesto — o cliente usa `curl`, então é
-viável. No SSO exige mudar o handoff para o frontend, provavelmente via cookie
-de uso único ou POST.
+**Callback de SSO: resolvido, e era pior do que o achado dizia.** O redirect
+usava o valor que viesse no request (`X-Frontend-URL` ou `frontend_url`) **sem
+validação nenhuma**. Como leva `sso_token`, `refresh_token` e e-mail na query
+string, bastava induzir a vítima a um callback apontando para o domínio do
+atacante para entregar uma sessão válida — takeover de conta, não open
+redirect. Agora há allowlist vinda de `FRONTEND_URL` e
+`SSO_ALLOWED_FRONTEND_URLS`, com 14 casos de teste incluindo os que enganam
+allowlist ingênua.
+
+O gosec sinalizava isso como **G710, numa regra excluída do gate**. Foi a
+exclusão que manteve o defeito invisível.
+
+**Continua aberto:** os tokens do SSO ainda trafegam na query string do
+redirect. Tirar exige trocar o handoff — código de uso único trocado por
+`fetch`, ou cookie. Item próprio.
 
 ### JWT em `localStorage`
 **Onde:** `navyr-frontend` — era o SEC-13
@@ -32,17 +44,32 @@ Vulnerável a XSS: qualquer script injetado lê o token. Migrar para cookie
 `HttpOnly` é mudança de arquitetura de sessão, com impacto em CORS, CSRF e no
 fluxo de refresh. Ficou fora da Fase 1 por isso.
 
-### 63 achados de análise de taint sem triagem
-**Onde:** todos os serviços Go
+### Achados de taint — triados em 20/08, gate religado
 
-O `gosec` reporta 64 achados nas regras G702/G704/G705/G710. Um foi confirmado
-real e corrigido (injeção de parâmetro no OAuth do community). Os outros 63 não
-foram analisados um a um — foram excluídos do gate porque numa frota cujo
-trabalho é proxiar requisições essas regras disparam constantemente e afogariam
-o sinal.
+Eram 72, não 63: gateway 51, orchestrator 13, agent 6, auth 2. As quatro regras
+estavam excluídas do gate, o que transformava "não olhei" em "não existe".
 
-**Correção:** uma passada dedicada de triagem, marcando cada um como falso
-positivo com justificativa ou corrigindo. Só então voltar a ativá-las no gate.
+**A triagem encontrou três defeitos reais:**
+
+1. **Takeover de conta via redirect de SSO** (G710) — descrito acima.
+2. **Injeção de argumento** (G702): `image` chegava da query e virava argumento
+   de `trivy`, `syft` e `cosign`. Sem shell, então sem injeção de comando — mas
+   valor começando com `-` é lido como flag, e as flags dessas ferramentas leem
+   e escrevem arquivo. Agora validado nos dois pontos de entrada, com 16 casos.
+3. **Injeção de caminho** (G704): `provider`, também da query, era concatenado
+   na URL do auth sem escape — `../` alcança outro endpoint. Mesma classe do
+   SEC-08 já corrigido no gateway.
+
+O resto era falso positivo verificado por família, não marcado em lote: o
+destino é fixado por configuração de ambiente, nunca pelo request, e os
+segmentos de caminho passam por `url.PathEscape`. A anotação registra o motivo.
+
+**G704, G705 e G710 religadas** — zero achados nos 7 serviços.
+
+**G702 continua fora, por razão técnica:** as regras de taint do gosec 2.28
+**não honram `#nosec`**, nem no destino nem na origem. Como o orchestrator
+legitimamente executa `trivy` e `syft` com referência validada, a regra
+reprovaria sempre. Reavaliar quando a anotação passar a ser respeitada.
 
 ### Monaco carregado de CDN — resolvido em 20/08
 
