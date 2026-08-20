@@ -44,17 +44,43 @@ o sinal.
 **Correção:** uma passada dedicada de triagem, marcando cada um como falso
 positivo com justificativa ou corrigindo. Só então voltar a ativá-las no gate.
 
-### Monaco carregado de CDN
+### Monaco carregado de CDN — resolvido em 20/08
+
+O editor passou a vir do pacote local. O import é seletivo — `editor.api` mais o
+registro de YAML, única linguagem usada — e o carregamento é sob demanda via
+`React.lazy`.
+
+**A divisão do bundle não era opcional.** Trazer o Monaco para dentro sem
+dividir levaria o bundle principal de 1,95 MB para 4,89 MB, fazendo toda a
+aplicação baixar o editor inclusive quem nunca abre a aba de YAML — trocaria um
+problema por outro. Com a divisão: principal em 1,94 MB, editor em chunk de
+2,6 MB buscado ao abrir a aba.
+
+**A versão servida não era a declarada.** O `package.json` pedia 0.56.0 e a CDN
+entregava 0.55.1. É a consequência concreta de "versão fora do nosso controle",
+e ninguém teria como notar.
+
+**Verificação por comportamento, não por busca de string.** A URL da jsdelivr
+continua no bundle como constante padrão da biblioteca — procurar a string não
+prova nada. O teste
+`navyr-frontend/tests/e2e/monaco-sem-cdn.spec.ts` observa os pedidos do
+navegador, e foi confirmado nos dois sentidos: sem o loader local o navegador
+pede o `loader.js` da jsdelivr, com ele não pede.
+
+### Google Fonts continua sendo buscado de fora
 **Onde:** `navyr-frontend`
 
-Não há `loader.config()` e `monaco-editor` nunca é importado direto — só
-`@monaco-editor/react`. O editor é baixado da CDN jsdelivr em runtime. Três
-consequências: a versão servida está fora do nosso controle, a CSP precisa
-liberar jsdelivr, e **deploy air-gapped não funciona** — que é objetivo
-declarado da Fase 6 do roadmap.
+Descoberto ao verificar o Monaco: mesmo com o editor local, a aplicação pede
+`fonts.googleapis.com` e `fonts.gstatic.com`. **Air-gapped continua não
+funcionando**, agora por causa das fontes.
 
-**Correção:** apontar o loader para o pacote local e configurar os workers no
-Vite. Exige verificação visual do editor.
+O teste do Monaco lista essas duas origens como exceção explícita, de modo que
+qualquer dependência externa **nova** reprove — mas as fontes em si seguem
+pendentes.
+
+**Correção:** hospedar as três famílias (Inter, Inter Tight, JetBrains Mono)
+junto da aplicação, com `@font-face` local. Exige verificação visual, porque
+peso e métrica precisam bater com o que está no ar hoje.
 
 ---
 
