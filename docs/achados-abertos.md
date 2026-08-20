@@ -67,20 +67,25 @@ prova nada. O teste
 navegador, e foi confirmado nos dois sentidos: sem o loader local o navegador
 pede o `loader.js` da jsdelivr, com ele não pede.
 
-### Google Fonts continua sendo buscado de fora
-**Onde:** `navyr-frontend`
+### Google Fonts — resolvido em 20/08
 
-Descoberto ao verificar o Monaco: mesmo com o editor local, a aplicação pede
-`fonts.googleapis.com` e `fonts.gstatic.com`. **Air-gapped continua não
-funcionando**, agora por causa das fontes.
+As fontes passaram a ser servidas junto da aplicação, em `src/assets/fonts/`,
+com `@font-face` explícito. Variáveis, subsets `latin` e `latin-ext`: 320 KB no
+total, contra 436 KB dos pacotes completos.
 
-O teste do Monaco lista essas duas origens como exceção explícita, de modo que
-qualquer dependência externa **nova** reprove — mas as fontes em si seguem
-pendentes.
+**Com isso o air-gapped funciona.** O teste
+`navyr-frontend/tests/e2e/monaco-sem-cdn.spec.ts` deixou de ter exceções —
+exige **zero** pedidos para fora, e passa.
 
-**Correção:** hospedar as três famílias (Inter, Inter Tight, JetBrains Mono)
-junto da aplicação, com `@font-face` local. Exige verificação visual, porque
-peso e métrica precisam bater com o que está no ar hoje.
+**Vendorizadas por necessidade, não por preferência:** o `rolldown`, bundler do
+Vite 8, não resolve o mapa de `exports` com wildcard dos pacotes
+`@fontsource-variable`. O custo é o Dependabot não conseguir atualizá-las;
+origem e versão ficam no cabeçalho do CSS.
+
+Inter e JetBrains Mono são SIL OFL 1.1 — permite redistribuição embarcada e
+exige o aviso de licença junto, que acompanha os arquivos.
+
+Decisão e consequências no [ADR 0007](adr/0007-sem-dependencia-de-rede-externa.md).
 
 ---
 
