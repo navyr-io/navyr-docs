@@ -77,8 +77,36 @@ Sem essa separação não há como distinguir "funcionando como projetado" de
 "sistema quebrado negando todo mundo".
 
 **4. Cache de sessão no Redis, com invalidação por evento.** A validação passa a
-ser guardada com TTL curto. Quando uma permissão muda, o `auth` publica evento e
-o gateway invalida a entrada.
+ser guardada com **TTL de 30 segundos**, e quando uma permissão muda o `auth`
+publica evento e o gateway invalida a entrada.
+
+O precedente de mercado mais próximo é o authorizer por webhook do Kubernetes,
+que resolve o mesmo problema com TTL assimétrico —
+`authorization-webhook-cache-authorized-ttl` em 5 min e
+`unauthorized-ttl` em 30 s. Introspecção de token OAuth costuma ficar entre 30 s
+e 5 min.
+
+Escolhemos 30 s simétrico por aritmética: um usuário a 20 requisições por minuto
+gera 2 chamadas ao `auth` em vez de 20 — corte de **90%**. Subir para 5 min leva
+a ~99%, e **os 9% adicionais custam uma janela de revogação 10 vezes maior**.
+Com a invalidação por evento, o TTL não é o mecanismo principal de revogação: é
+a rede de segurança para quando o evento se perde, e rede de segurança curta é
+melhor.
+
+Três regras acompanham:
+
+- **Nunca servir valor expirado.** `auth` fora com cache vencido **nega**. É o
+  custo do fail-closed, aceito explicitamente.
+- **Nunca cachear falha.** Cache negativo de "não consegui verificar"
+  transformaria falha momentânea em minutos de indisponibilidade.
+- **Redis é cache, não autoridade.** Redis fora faz o gateway voltar a chamar o
+  `auth` direto — que é exatamente o comportamento de hoje. Redis fora é a
+  latência atual de volta, **não** indisponibilidade, e nunca nega ninguém.
+
+O risco de o Redis cair não é negar, é **efeito manada** sobre o `auth`. Três
+mitigações, todas automáticas: cache local em memória como primeiro nível,
+`singleflight` para colapsar consultas idênticas concorrentes, e circuit breaker
+no Redis para não pagar timeout em toda requisição enquanto ele está fora.
 
 O evento **não decide nada** — apenas apressa a expiração. Essa distinção é a
 razão de o desenho ser assim: autorização é síncrona, no caminho da requisição,
@@ -101,6 +129,24 @@ IAM, atraso de revogação é o defeito mais caro.
 
 **Autorização por eventos.** Descrita acima. Descartada para a decisão,
 adotada para a invalidação.
+
+## Critério de aceitação — experimentos de caos
+
+A mudança não é considerada entregue por passar em teste unitário. Fail-closed e
+degradação só se provam derrubando as dependências de verdade, porque o modo de
+falha *é* o comportamento sob teste.
+
+| Experimento | Asserção |
+|---|---|
+| Matar o **Redis** | Nenhum `403` novo. Latência sobe. Cliente não vê erro. |
+| Matar o **auth** | Nega. `permission_lookup_failed` sobe. Alerta dispara. |
+| Injetar latência no **auth** | Timeout previsível, sem cascata para os outros serviços |
+| Matar o **Redis sob carga** | Sem manada: chamadas ao `auth` colapsadas pelo `singleflight` |
+| Expirar o cache com **auth fora** | Nega — confirma que valor expirado nunca é servido |
+
+O segundo é o mais valioso: é o único jeito de provar que o fail-closed funciona
+como projetado, e não como esperança. O último existe porque "nunca servir
+expirado" é fácil de escrever e fácil de violar sem perceber.
 
 ## Consequências
 
@@ -128,3 +174,10 @@ cobertura**, `rateLimitMiddleware` em 0%, e o despacho de 132 rotas não tem
 referência em teste nenhum. Mexer na autorização antes de cobri-la é refatorar
 sem rede o único ponto público do produto. **A ordem é: teste primeiro, depois
 esta mudança.**
+
+**Achado adjacente, decisão própria.** O rate limit já é fail-open quando o
+Redis falha, com comentário no código dizendo isso — e some **silenciosamente**,
+sem log nem métrica. Fail-open ali é defensável: é proteção contra abuso, não
+autorização. Ser silencioso não é. O `memoryLimiter` já existe no código e hoje
+só é usado quando a `REDIS_URL` é inválida na partida; deveria ser o fallback de
+runtime, em vez de "libera tudo".
