@@ -435,38 +435,56 @@ não bump.
 
 ## Qualidade
 
-### Arquivos-deus — parcialmente resolvido em 19/08
+### Arquivos-deus — os cinco do plano fechados em 20/08
 
 | Arquivo | Antes | Depois |
 |---|---|---|
 | `orchestrator/internal/handler/kubernetes_handler.go` | 4.316 | **967** (dividido em 7) |
-| `gateway/cmd/server/main.go` | 4.349 | **2.904** (6 extraídos) |
+| `gateway/cmd/server/main.go` | 4.349 | **2.952** (6 extraídos) |
 | `auth/internal/service/auth_service.go` | 3.906 | **1.743** (6 extraídos) |
-| `orchestrator/cmd/server/main.go` | 3.033 | 3.033 — não tocado |
-| `frontend/src/screens/SettingsPage.tsx` | 1.864 | 1.864 — não tocado |
+| `orchestrator/cmd/server/main.go` | 3.592 | **239** (6 extraídos) |
+| `frontend/src/screens/SettingsPage.tsx` | 2.138 | **105** (12 abas extraídas) |
 
-A divisão feita foi **movimento puro**: declarações movidas entre arquivos do
-mesmo pacote, sem alterar assinatura nem corpo. A forma foi escolhida por ser
-verificável — Go recusa declaração duplicada, então compilar já prova que nada
-foi copiado em dobro, e a cobertura permanecer idêntica prova que nenhum caminho
-de execução mudou.
+A técnica foi **movimento puro**: declarações movidas entre arquivos, sem
+alterar assinatura nem corpo. Foi escolhida por ser verificável — Go recusa
+declaração duplicada, então compilar já prova que nada foi copiado em dobro.
+
+Nos dois últimos houve **uma mudança de forma cada, e só uma**. No orchestrator,
+as closures da tabela de rotas capturavam 14 variáveis do escopo de `main()`;
+viraram uma struct passada por valor, sem a qual cada grupo precisaria de uma
+lista de parâmetros divergente. No frontend, o que era privado de uma aba
+deixou de ser exportado — só o componente que a casca importa sai do módulo.
+
+Verificação, nos dois: as 205 rotas registradas são string por string as mesmas
+antes e depois; as declarações do `SettingsPage` idem; build, lint e testes
+limpos; e o binário sobe servindo rotas dos dois grupos enquanto os 5 specs de
+E2E passam, incluindo o que percorre settings.
 
 **Efeito colateral em `navyr-auth`.** A divisão por domínio deixou visível a
-fronteira entre a edição livre e a enterprise: LDAP, SSO, SCIM, grupos e grants
-somam cerca de 1.760 linhas agora isoladas em arquivos próprios. Se a separação
-open core for adotada, o trabalho neste repositório — que era o mais pesado —
-deixa de ser desembaraçar código e passa a ser mover arquivos.
+fronteira entre a edição livre e a enterprise — o que depois virou a separação
+open core, com LDAP, SSO, SCIM, grupos e grants atrás de build tag.
 
-**O que falta no gateway, e por quê.** A função `main()` sozinha tem 794 linhas,
-quase todas na tabela de 132 rotas, e o despacho vive em `apiHandler` — uma
-closure que captura `httpClient`, as URLs dos serviços e os proxies do escopo de
-`main`. Extrair isso exigiria passar essas dependências por parâmetro ou struct,
-o que deixa de ser movimento puro e vira **mudança de assinatura no caminho de
-autenticação de toda a plataforma**.
+**O que falta no gateway, e por quê.** A `main()` sozinha tem 794 linhas, quase
+todas na tabela de 132 rotas, e o despacho vive em `apiHandler` — uma closure
+que captura `httpClient`, as URLs dos serviços e os proxies do escopo de
+`main`. Extrair vira **mudança de assinatura no caminho de autenticação de toda
+a plataforma**, com 15,7% de cobertura nesse arquivo. O passo correto é cobrir o
+despacho de rotas com teste primeiro; o contrário é refatorar sem rede o único
+ponto público do produto.
 
-Com 15,7% de cobertura nesse arquivo, o passo correto é cobrir o despacho de
-rotas com teste primeiro. Fazer o contrário é refatorar sem rede o único ponto
-público do produto.
+**Arquivos grandes fora da lista do plano.** A auditoria de 20/08 encontrou
+outros que a auditoria original não listou, e que ninguém decidiu atacar:
+
+| Arquivo | Linhas |
+|---|---|
+| `orchestrator/internal/service/kubernetes.go` | 3.300 |
+| `auth/internal/repository/user_repository.go` | 2.048 |
+| `auth/internal/handler/auth_handler.go` | 1.938 |
+| `auth/cmd/server/main.go` | 1.789 |
+| `frontend/src/screens/IntelligencePage.tsx` | 1.717 |
+
+São candidatos legítimos pela mesma técnica, mas entram em escopo por decisão,
+não por inércia.
 
 ### E2E — fechado em 19/08, com cobertura perdida
 
