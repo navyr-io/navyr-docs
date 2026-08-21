@@ -118,9 +118,55 @@ complexidade do 0008 deixa de ser necessária.
 não um cache dela. Sob o 0008, perder o Redis significava voltar a chamar o
 `auth` — degradação de latência. Sob BFF, **perder o Redis desloga todo mundo.**
 
-Isso não é falha de segurança, é de disponibilidade, e precisa de decisão
-explícita: persistência (AOF) para sobreviver a reinício, réplica, ou aceitar
-conscientemente que queda do Redis força novo login. **Não pode ser emergente.**
+Isso não é falha de segurança, é de disponibilidade. **Decidido em 21/08: AOF**,
+com as condições abaixo — sem elas, ligar `appendonly yes` é teatro.
+
+### Persistência: AOF com `everysec`, em Redis próprio
+
+**Pré-requisito que invalida a configuração atual.** O Redis roda hoje como
+`Deployment`, **sem volume nenhum**, com `--save "" --appendonly no` e
+`readOnlyRootFilesystem: true`. Ligar AOF assim escreveria em sistema de arquivos
+somente leitura — e se escrevesse, o arquivo morreria no primeiro reagendamento
+do pod. **AOF exige antes `StatefulSet` + `PersistentVolumeClaim`.**
+
+**O custo do AOF é só em escrita.** Ler sessão — o caminho de toda requisição sob
+BFF — não paga nada. Escrever sessão acontece no login. A conta seria trivial se
+não fosse por um detalhe: existe **um Redis só**, compartilhado por gateway
+(rate limit e pub/sub), collector e orchestrator — e o rate limit faz `INCR` **em
+toda requisição**. Com AOF no Redis compartilhado, cada requisição vira um
+append.
+
+| `appendfsync` | Custo | Perda máxima |
+|---|---|---|
+| `always` | fsync por escrita: ~1–2 ms em disco de rede, ~0,1–0,3 ms em NVMe local | 1 escrita |
+| `everysec` | fsync em thread de fundo, 1×/s. Sem custo constante; risco é pico quando o fsync anterior ainda não terminou | ~1 segundo |
+| `no` | nenhum | ~30 s |
+
+Contra a meta de 300 ms, nem o `always` aparece na média: 2 ms é 0,7% do
+orçamento. **O problema é pico, não média** — o rewrite do AOF faz `fork`, com
+pico de memória por copy-on-write, mitigável com `no-appendfsync-on-rewrite yes`
+ao custo de durabilidade naquela janela.
+
+Escolhemos **`everysec`** e **Redis de sessão separado do Redis de cache**.
+Sessão precisa de durabilidade; contador de rate limit e pub/sub não precisam de
+nenhuma — perder um contador é irrelevante, e mantê-los no mesmo processo faria o
+`INCR` de toda requisição entrar no arquivo sem motivo. Com a separação, o AOF
+cobre apenas escrita de sessão, que acontece no login, e sai do caminho quente.
+
+`always` foi descartado: paga fsync por escrita para proteger contra perder
+**uma** sessão recém-criada, cuja consequência é o usuário refazer o login. Não
+compensa o custo nem a variância.
+
+### Renovação preguiçosa de TTL
+
+Decisão de desenho que pesa mais que o modo de fsync: **a sessão não pode ser
+escrita a cada requisição.** Expiração deslizante ingênua — renovar o TTL toda
+vez que a sessão é lida — transforma **toda leitura em escrita**, e aí o AOF
+passa a custar no caminho de toda requisição, anulando a separação acima.
+
+O TTL só é estendido se passou mais de um intervalo mínimo desde o último toque.
+As escritas ficam proporcionais a sessões ativas por minuto, não a requisições
+por segundo.
 
 **CSRF passa a existir.** Cookie é enviado automaticamente pelo navegador, então
 requisição forjada de outro site carrega a credencial. `SameSite` cobre a maior
