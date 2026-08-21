@@ -7,7 +7,7 @@ que importa e o que a correção envolve.
 Os achados **já corrigidos** estão nas mensagens de commit dos repositórios
 correspondentes; o backlog SEC-04..14 do `NAVYR.md` foi fechado na Fase 1.
 
-**Última revisão: 2026-08-19**
+**Última revisão: 2026-08-20**
 
 ---
 
@@ -166,6 +166,15 @@ Havia três, e dois eram piores do que o achado original registrava:
    **JWT do Navyr** no lugar do token do Kubernetes. **Não autenticava em lugar
    nenhum.** Removido endpoint, modelo, serviço e a tela que o consumia.
 
+**Validado com lab real em 20/08.** Um cluster de lab provisionado ponta a
+ponta pelo caminho novo: `kind create` → registro do cluster → emissão do token →
+`kubectl apply` do manifesto pela entrada padrão → agente conectando de dentro
+para fora. `ready` em 138s, `tunnel connected` no log do agente, e a listagem de
+namespaces do lab respondida pela API da plataforma — estado vivo atravessando o
+túnel. A tabela `orchestrator_clusters` **não tem nenhuma coluna** que case com
+`kubeconfig|credential|secret|token|cert|key`: não há onde guardar credencial. A
+destruição pela API também foi exercitada.
+
 O que sobra com "kubeconfig" no nome é `ToRawKubeConfigLoader`, exigência da
 interface do Helm, que devolve o `rest.Config` do túnel em memória sem tocar
 disco.
@@ -173,6 +182,36 @@ disco.
 Junto, o passo 2 do onboarding no frontend deixou de dizer "paste a kubeconfig
 or deploy the agent" — oferecia um caminho inexistente e contradizia o
 diferencial que a documentação vende.
+
+### Motor de labs não funciona na imagem publicada
+
+A imagem `ghcr.io/navyr-io/navyr-orchestrator` traz `helm` e `trivy`, mas **não
+traz `kind` nem `kubectl`** — os dois binários que o motor de labs executa. E o
+Compose não monta o socket do Docker, sem o qual `kind create cluster` não tem
+daemon com quem falar.
+
+Não há flag que desligue a feature: as rotas `/api/v1/labs/*` estão sempre
+registradas. Numa instalação real elas aceitam a requisição, respondem
+`202 provisioning` e falham no primeiro comando — o cluster fica `error` com uma
+mensagem de executável não encontrado. **É anterior à remoção do kubeconfig**;
+apareceu ao validar o lab, não foi causado por ela.
+
+Rodar labs exige dar ao orchestrator acesso ao daemon Docker, o que equivale a
+root no host. Num serviço multi-tenant isso é escalação de privilégio séria, e é
+por isso que a correção não é só acrescentar dois binários ao Dockerfile. As
+saídas plausíveis:
+
+- **Worker separado** para labs, com o acesso ao Docker isolado nele, falando com
+  o orchestrator por API. Preserva o limite de privilégio.
+- **Empacotar no orchestrator** e assumir que labs só existem em instalação
+  self-hosted de demonstração, com a feature desligada por padrão via flag.
+
+A validação de 20/08 usou uma imagem descartável (orchestrator do fonte + `kind`
++ `kubectl`, rede do host, socket montado) — serviu para provar o fluxo, não é
+recomendação de empacotamento.
+
+Nada na documentação registra que o motor de labs precisa de daemon Docker no
+host do orchestrator.
 
 ### Migrations sem versionamento — resolvido em 19/08
 
