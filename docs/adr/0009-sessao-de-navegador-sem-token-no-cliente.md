@@ -1,6 +1,6 @@
 # 0009 — Sessão de navegador sem token no cliente
 
-**Status:** Proposta · **Data:** 2026-08
+**Status:** Aceita · **Data:** 2026-08
 
 Reconcilia e amplia o [ADR 0008](0008-autorizacao-fail-closed-e-cache-de-sessao.md).
 

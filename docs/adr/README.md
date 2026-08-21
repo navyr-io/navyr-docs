@@ -19,5 +19,5 @@ de por que se tentou o caminho anterior é o que evita repeti-lo.
 | [0005](0005-ci-validacao-separada-de-publicacao.md) | Validação e publicação em workflows distintos | Aceita |
 | [0006](0006-helm-como-caminho-unico.md) | Helm como único caminho de deploy para Kubernetes | Aceita |
 | [0007](0007-sem-dependencia-de-rede-externa.md) | A aplicação não busca nada de fora em runtime | Aceita |
-| [0008](0008-autorizacao-fail-closed-e-cache-de-sessao.md) | Autorização fail-closed e cache de sessão | Proposta |
-| [0009](0009-sessao-de-navegador-sem-token-no-cliente.md) | Sessão de navegador sem token no cliente | Proposta |
+| [0008](0008-autorizacao-fail-closed-e-cache-de-sessao.md) | Autorização fail-closed e cache de sessão | Aceita |
+| [0009](0009-sessao-de-navegador-sem-token-no-cliente.md) | Sessão de navegador sem token no cliente | Aceita |

@@ -1,6 +1,6 @@
 # 0008 — Autorização fail-closed e cache de sessão
 
-**Status:** Proposta · **Data:** 2026-08
+**Status:** Aceita · **Data:** 2026-08
 
 > **Ampliada pelo [ADR 0009](0009-sessao-de-navegador-sem-token-no-cliente.md).**
 > As decisões aqui seguem válidas, mas o cache de sessão deve nascer como
