@@ -129,8 +129,8 @@ login federado, que precisa de teste antes.
 **Base:** 5 passos sequenciais, nenhum possível hoje.
 
 1. Confirmar que o pipeline volta a rodar
-2. Deixar os **62 commits** acumulados fecharem verde
-3. Mergear os **18 PRs** do Dependabot
+2. Deixar os **97 commits** acumulados fecharem verde
+3. Mergear os **20 PRs** do Dependabot
 4. Criar as tags, conferindo que a imagem existe no registry antes de anunciar
 5. Ligar branch protection
 
