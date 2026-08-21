@@ -2,6 +2,11 @@
 
 **Status:** Proposta · **Data:** 2026-08
 
+> **Ampliada pelo [ADR 0009](0009-sessao-de-navegador-sem-token-no-cliente.md).**
+> As decisões aqui seguem válidas, mas o cache de sessão deve nascer como
+> sessão autoritativa de BFF, não como cache de validação — implementar as duas
+> em sequência significaria refazer.
+
 ## Contexto
 
 A trava de permissões granulares do gateway libera quando não sabe responder.
