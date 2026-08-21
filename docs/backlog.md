@@ -9,6 +9,10 @@ prontas, o que tornou o projeto impossível de gerenciar do seu lado.
 uma descoberta bloqueia o que estou fazendo, eu paro e pergunto — não corrijo e
 conto depois.
 
+**Quadro:** https://github.com/orgs/navyr-io/projects/1 — é lá que o trabalho é
+gerenciado. Esta página é o detalhamento: a base de cada percentual e o motivo
+de cada item estar incompleto.
+
 **Última revisão: 2026-08-20**
 
 ---
