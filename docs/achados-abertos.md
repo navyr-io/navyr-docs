@@ -7,7 +7,7 @@ que importa e o que a correção envolve.
 Os achados **já corrigidos** estão nas mensagens de commit dos repositórios
 correspondentes; o backlog SEC-04..14 do `NAVYR.md` foi fechado na Fase 1.
 
-**Última revisão: 2026-08-20**
+**Última revisão: 2026-08-22**
 
 ---
 
@@ -37,12 +37,33 @@ exclusão que manteve o defeito invisível.
 redirect. Tirar exige trocar o handoff — código de uso único trocado por
 `fetch`, ou cookie. Item próprio.
 
-### JWT em `localStorage`
+### JWT em `localStorage` — resolvido em 21/08
+
 **Onde:** `navyr-frontend` — era o SEC-13
 
-Vulnerável a XSS: qualquer script injetado lê o token. Migrar para cookie
-`HttpOnly` é mudança de arquitetura de sessão, com impacto em CORS, CSRF e no
-fluxo de refresh. Ficou fora da Fase 1 por isso.
+Vulnerável a XSS: qualquer script injetado lia o token. Estava fora da Fase 1
+porque migrar para cookie `HttpOnly` é mudança de arquitetura de sessão, com
+impacto em CORS, CSRF e no fluxo de refresh.
+
+Resolvido pelo BFF (ADR 0009): a credencial vive num cookie `HttpOnly` que o
+navegador anexa sozinho, e o gateway a troca pelo token guardado no Redis.
+`grep navyr.token` em `src/` devolve zero.
+
+O que sobrou é vestígio sem valor de segurança: 128 funções de API ainda recebem
+um parâmetro `token` que é sempre string vazia. Medido e registrado em
+`navyr-frontend#14` — 129 pontos de chamada, não os 55 que o achado original
+estimava.
+
+**Duas consequências do BFF só apareceram em 22/08**, e as duas eram falhas
+reais:
+
+- Duas chamadas que usam `fetch` direto, fora do `requestJson`, não mandavam
+  `credentials: "include"` — então não enviavam o cookie. A exportação de
+  auditoria em CSV e o fluxo de eventos do cluster respondiam 401 desde a
+  migração. Corrigido em `navyr-frontend#16`.
+- `openPodExecWebSocket` monta `&token=` na URL, parâmetro que o gateway
+  **recusa com 400**. Funciona só porque o valor é vazio. É código morto — o
+  terminal vivo usa o fluxo de ticket — e sai junto com a limpeza do #14.
 
 ### Achados de taint — triados em 20/08, gate religado
 
@@ -659,3 +680,74 @@ existiram no chart.
 **Branch protection** não pode ser configurada: o plano Free da organização
 retorna 403 para repositório privado. O CI roda e reprova de forma visível, mas
 nada impede o merge.
+
+---
+
+## O que 21–23/08 encontrou, e o que ficou aberto
+
+Três dias de trabalho por cobertura, não por auditoria: escrever teste onde não
+havia. O padrão se repetiu em todos os serviços — **cobrir código sem teste
+encontra defeito**, e encontra na proporção do que não estava coberto.
+
+### Os números
+
+| Serviço | Cobertura antes | Depois |
+|---|---|---|
+| `navyr-agent` | **1,3%** | **65,8%** |
+| `navyr-gateway` | 32,4% | **43,5%** |
+| `navyr-community` | 58,8% | 63,9% |
+| `navyr-collector` | já alta | 73,2% |
+
+O `navyr-agent` sozinho rendeu **nove defeitos**, todos no cliente que sustenta o
+túnel. Os mais caros: `Path` começando com `@` desviava a requisição para host
+arbitrário **com o corpo junto**; o segredo do agente era compartilhado entre
+goroutines sem sincronização, e a reconexão podia usar um token já revogado para
+sempre; e o heartbeat chamava a si mesmo sem teto — medido, **39.092 requisições
+em 10 segundos** contra o orchestrator, de um agente só.
+
+No `navyr-gateway`, cobrir as funções de acesso expôs um `default: return nil`
+que **autorizava toda a faixa 3xx**. O resto da função era cuidadosamente
+fail-closed; só essa faixa escapava, e para o lado errado.
+
+### O padrão que vale registrar
+
+**Quase todo defeito grave desta rodada era silencioso.** Nenhum derrubava
+serviço; todos faziam o produto reportar algo diferente do que acontecia. Erro do
+Postgres cru na resposta, escrita que não escrevia e devolvia 200, ação que
+falhava sem dizer nada na tela, cota não verificada sem log, evento de uso
+perdido sem sinal.
+
+O critério de severidade do projeto — *"defeito silencioso sobe de nível"* —
+provou-se o mais útil dos que usamos.
+
+### O caso do BFF, que ainda estava mordendo
+
+A migração para cookie `HttpOnly` (ADR 0009) deixou **nove chamadas** usando
+`fetch` direto com `Authorization: Bearer ${token}` e sem `credentials`. Como o
+token virou string vazia, o que ia era um `Bearer ` sem credencial, e o cookie
+não ia. Nove funcionalidades respondendo 401 desde a migração — exportação de
+auditoria, fluxo de eventos, análise da Navy, painel de sinal, CrashInsight e as
+duas do serviço de comunidade.
+
+Todas apareceram tentando remover o parâmetro `token` vestigial: remover quebra o
+template `Bearer ${token}` e obriga a ler o que a linha faz. **A limpeza foi
+revertida duas vezes** e segue aberta, mas já pagou por si duas vezes.
+
+### O que fica aberto
+
+| Item | Onde | Estado |
+|---|---|---|
+| Token vestigial em 128 funções | `navyr-frontend#14` | despriorizado, com medição e caminho registrados |
+| Motor de labs na imagem publicada | `navyr-orchestrator#7` | espera decisão de arquitetura |
+| Branch protection, tags v0.1.0 | `navyr-deploy#1`, `#3` | parede de plano — GitHub Team |
+| Licenciamento por edição | `navyr-deploy#8` | decisão de negócio |
+
+**Nenhum bug aberto em nenhuma severidade.**
+
+### Uma limitação honesta desta rodada
+
+Três achados de `gosec` da família **G118** — goroutine usando `context.Background`
+onde há contexto de requisição, em `navyr-gateway/despacho.go` — **não foram
+examinados**. Aparecem só ao rodar `gosec@latest`; a versão fixada no CI não os
+reporta. Ficam registrados como não verificados, não como resolvidos.
+
