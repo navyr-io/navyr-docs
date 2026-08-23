@@ -41,8 +41,15 @@ reconhece. É defesa em profundidade com zero mudança de comportamento.
 `/api/v1/auth/*` → `/auth/*` tornaria as 73 rotas do auth alcançáveis, e as 20+
 administrativas ganhariam caminho sem gate.
 
-**R5.** Nada no frontend chama `/auth/token/validate`. É endpoint de uso interno
-do gateway para resolver sessão; chamá-lo do navegador não tem efeito útil.
+**R5.** Nada no frontend chama `/auth/token/validate`. É o endpoint que o
+gateway usa internamente para resolver a sessão a partir do token; chamá-lo do
+navegador manda pedido sem credencial, porque quem tem o token é o gateway.
+
+**Correção de 23/08:** a primeira versão desta regra dizia que ninguém no
+frontend o chamava. Errado — `validateSession` chamava, e o `OrgTab` usa, para
+ler o `org_id` da sessão. A regra vale; a premissa estava errada. O destino não é
+remoção: é `/api/v1/auth/session`, o endpoint do BFF, que devolve a mesma forma
+`{ user }` a partir do cookie.
 
 ## Tabela de decisão
 
@@ -55,7 +62,7 @@ do gateway para resolver sessão; chamá-lo do navegador não tem efeito útil.
 | `createInvite` | `/auth/invites` | gateway | **admin** | R3 |
 | `changeUserRole` | `/auth/users/{id}/role` | gateway | **admin** | R3 |
 | `setUserLifecycle` | `/auth/admin/users/{id}/lifecycle` | gateway | **admin** | R3 |
-| `validateToken` | `/auth/token/validate` | **remover** | — | R5 |
+| `validateSession` | `/auth/token/validate` | gateway, em `/api/v1/auth/session` | sessão | R5 |
 
 ## Critérios de aceitação
 
