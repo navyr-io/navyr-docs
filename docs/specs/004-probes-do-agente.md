@@ -1,6 +1,6 @@
 # SPEC-004 — Os probes do agente no manifesto de instalação
 
-**Estado:** aprovada — decisões D1 e D2 tomadas em 27/08
+**Estado:** implementada e verificada — 27/08
 **Data:** 27/08/2026
 **Card:** navyr-io/navyr-orchestrator#12 (Crítico)
 
