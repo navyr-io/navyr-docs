@@ -73,7 +73,7 @@ O canal de comunicação é `.agents/`. Protocolo completo em `.agents/PROTOCOL.
 ## Regra 6 — Arquitetura e contratos
 
 - Nenhuma rota nova sem entrada no `openapi.yaml` **do próprio repositório**.
-  A spec unificada em `navyr-deploy/spec/openapi.yaml` foi aposentada em 19/08:
+  A spec unificada em `docs/spec/openapi.yaml` (que vivia em `navyr-deploy/spec/` ate 31/08) foi aposentada em 19/08:
   apontava para outro repositório, o que tornava a regra inaplicável, e foi
   violada — 14 rotas existiam só nas specs por serviço.
 - Toda operação declara resposta `default`, e as sob `/api/v1/` declaram também

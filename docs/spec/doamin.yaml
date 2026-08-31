@@ -1,0 +1,24 @@
+version: v1
+
+entities:
+  Tenant:
+    id: string
+    name: string
+    plan: string
+
+  User:
+    id: string
+    tenant_id: string
+    email: string
+    role: Viewer | Operator | Admin
+
+  Workload:
+    name: string
+    namespace: string
+    type: deployment | pod
+    status: healthy | degraded | failed
+
+  UsageEvent:
+    tenant_id: string
+    type: exec | logs | restart | ai
+    timestamp: datetime

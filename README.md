@@ -25,6 +25,7 @@
 | [Runbooks](docs/runbooks/README.md) | Procedimentos de operação sob incidente |
 | [Achados em aberto](docs/achados-abertos.md) | Defeitos e riscos conhecidos ainda não corrigidos |
 | [Roadmap](docs/roadmap.md) | Current status, phase overview, active backlog, recent deliveries |
+| [Especificação de produto (legado)](docs/spec/ORIGEM.md) | Visão, personas e fluxos da fase KubeOps — histórico, **não** requisito vigente |
 
 ---
 

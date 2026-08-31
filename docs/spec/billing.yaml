@@ -1,0 +1,14 @@
+plans:
+  starter:
+    max_users: 5
+    max_clusters: 2
+    features:
+      - view
+      - logs
+
+  pro:
+    max_users: 20
+    max_clusters: 10
+    features:
+      - exec
+      - restart

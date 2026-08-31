@@ -1,0 +1,7 @@
+screens:
+  WorkloadDetail:
+    sections:
+      - status
+      - logs
+    actions:
+      - exec

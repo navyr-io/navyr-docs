@@ -1,0 +1,17 @@
+endpoints:
+
+  - GET /namespaces
+
+  - GET /pods
+  - GET /deployments
+  - GET /statefulsets
+  - GET /daemonsets
+
+  - GET /services
+  - GET /ingress
+
+  - GET /configmaps
+  - GET /secrets
+
+  - GET /pvcs
+  - GET /pvs
