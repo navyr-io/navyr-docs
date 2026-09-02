@@ -37,7 +37,16 @@ export REGISTRY=ghcr.io/navyr-io
 O script retaga as imagens da tag informada para `:latest` e recria os
 serviços.
 
-**Onde achar a tag anterior:** as imagens são publicadas como `sha-<commit>`.
+**Onde achar a tag anterior:** hoje as imagens são publicadas com o **SHA curto
+puro** — `7f21918`, não `sha-7f21918`.
+
+As tags `sha-<commit>` e `main` vêm do workflow de Publicação e estão congeladas
+em **19/08/2026**, última execução bem-sucedida antes do bloqueio de cobrança
+(navyr-deploy#4). Tudo publicado depois disso foi enviado manualmente, com SHA
+puro. Reverter para uma tag `sha-` te leva a agosto, não à versão anterior.
+
+Confira a lista de verdade antes de escolher — o comando abaixo devolve as tags
+que existem, e é ele que manda.
 
 ```bash
 curl -s "https://ghcr.io/token?scope=repository:navyr-io/navyr-gateway:pull" \

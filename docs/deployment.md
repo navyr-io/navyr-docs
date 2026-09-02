@@ -1,27 +1,29 @@
 # Deployment
 
-**Last updated: 2026-05-24**
+**Last updated: 2026-09-02**
 
 ## Option 1: Docker Compose (quick-start)
 
-The fastest path to a running Navyr instance. See [navyr-deploy](https://github.com/navyr-io/navyr-deploy) for the full configuration.
+The fastest path to a running Navyr instance. The configuration lives in
+[navyr-deploy](https://github.com/navyr-io/navyr-deploy).
+
+> **Access note.** The service images are **public** — `docker pull` needs no
+> login. The `navyr-deploy` repository is currently **private**, so step 1 needs
+> access to the `navyr-io` organization. Ask for access if the clone returns 404.
 
 ```bash
-# 1. Clone the deployment config
+# 1. Clone the deployment config  (needs org access — see note above)
 git clone https://github.com/navyr-io/navyr-deploy
 cd navyr-deploy
 
-# 2. Authenticate with GHCR
-docker login ghcr.io -u YOUR_GITHUB_USERNAME -p YOUR_PAT
-
-# 3. Configure
+# 2. Configure
 cp .env.example .env
 # Fill in required secrets (see below)
 
-# 4. Start
+# 3. Start
 docker compose up -d
 
-# 5. Check health
+# 4. Check health
 curl http://localhost:8080/health
 ```
 
@@ -154,7 +156,7 @@ After the platform is running, connect Kubernetes clusters via the agent:
 # The command includes a pre-generated agent token
 
 # 2. Install the agent in the target cluster
-helm install navyr-agent oci://ghcr.io/navyr-io/navyr-agent \
+helm install navyr-agent oci://ghcr.io/navyr-io/charts/navyr-agent --version 0.1.0 \
   --namespace navyr-agent \
   --create-namespace \
   --set agent.orchestratorUrl=wss://<NAVYR_HOST>:8083 \
@@ -213,11 +215,14 @@ The cluster will appear as **healthy** in the Navyr UI within 30 seconds.
 
 | Tag | Meaning |
 |---|---|
-| `latest` | Latest build from `main` branch |
-| `main` | Alias for `latest` |
-| `sha-<commit>` | Pinned to a specific commit (recommended for production) |
+| `latest` | the most recent published build |
+| `<short-sha>` | a specific commit, e.g. `7f21918` — **the tag to pin** |
+| `sha-<short-sha>`, `main` | produced by an older CI pipeline; frozen since 2026-08-19 |
 
 Example to pin:
 ```bash
-NAVYR_VERSION=sha-b67bf1e docker compose up -d
+NAVYR_VERSION=7f21918 docker compose up -d
 ```
+
+To list what actually exists, use the package page for each image on GHCR
+(`github.com/orgs/navyr-io/packages`) — do not guess a SHA.
