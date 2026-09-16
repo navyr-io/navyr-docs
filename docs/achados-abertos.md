@@ -7,7 +7,7 @@ que importa e o que a correção envolve.
 Os achados **já corrigidos** estão nas mensagens de commit dos repositórios
 correspondentes; o backlog SEC-04..14 do `NAVYR.md` foi fechado na Fase 1.
 
-**Última revisão: 2026-08-22**
+**Última revisão: 2026-09-16**
 
 ---
 
@@ -87,10 +87,28 @@ segmentos de caminho passam por `url.PathEscape`. A anotação registra o motivo
 
 **G704, G705 e G710 religadas** — zero achados nos 7 serviços.
 
-**G702 continua fora, por razão técnica:** as regras de taint do gosec 2.28
-**não honram `#nosec`**, nem no destino nem na origem. Como o orchestrator
-legitimamente executa `trivy` e `syft` com referência validada, a regra
-reprovaria sempre. Reavaliar quando a anotação passar a ser respeitada.
+**G702 continua fora — mas a razão registrada aqui era falsa, e custou caro.**
+
+O texto original dizia: "as regras de taint do gosec 2.28 **não honram
+`#nosec`**, nem no destino nem na origem". **Isso não é verdade.** Medido em
+16/09 com gosec 2.28.0 e 2.29.0, que se comportam de forma idêntica: `#nosec`
+funciona em regra de taint, desde que a anotação esteja na linha que o gosec
+**reporta** — o sink, `client.Do(req)` — e não na que parece a origem,
+`http.NewRequestWithContext`.
+
+O preço da frase errada: o `navyr-gateway` acumulou **54 anotações `#nosec G704`
+inertes**, todas na linha errada. Enquanto `G704` esteve excluída isso não
+aparecia. Quando a regra voltou em 20/08 e código novo entrou durante o apagão
+do CI, o gate reprovou e a suposição registrada dizia que não havia saída — o
+que transformou uma anotação faltando em duas semanas de gate vermelho e uma
+decisão de quatro opções que não precisava existir (card `navyr-deploy#18`).
+
+**Fica em aberto:** religar `G702` agora que a supressão é viável. O
+orchestrator legitimamente executa `trivy`, `syft` e `cosign` com referência de
+imagem validada, e esses sinks podem ser anotados como os demais foram. Não foi
+feito junto com o `#18` porque religar a regra pode revelar sinks novos e voltar
+o gate a vermelho — merece card e medição próprios. O comentário do
+`-exclude=G702,G118` em `navyr-io/.github` ainda carrega a frase falsa.
 
 ### Monaco carregado de CDN — resolvido em 20/08
 
