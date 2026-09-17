@@ -1,17 +1,86 @@
 name: Release
 
-# Repositório sem imagem: a tag só produz a GitHub Release.
+# AUTO-CONTIDO DE PROPOSITO, e este e o unico workflow da frota que precisa ser.
+#
+# Repositorio PUBLICO nao alcanca workflow reutilizavel de repositorio PRIVADO.
+# O navyr-docs e o unico repo publico da organizacao, e o navyr-io/.github e
+# privado -- entao a versao anterior deste arquivo, que chamava
+# navyr-io/.github/.github/workflows/release.yml@main, falhava NA PARTIDA: zero
+# jobs, nenhum log, conclusion=failure. Os arquivos de navyr-deploy e navyr-helm
+# eram byte a byte identicos e passavam, porque esses dois sao privados.
+# Ver navyr-deploy#21.
+#
+# A duplicacao aqui e aceitavel e limitada: isto NAO e o gate de SAST, e sim a
+# criacao de uma GitHub Release a partir do CHANGELOG. Duplicar o gate recriaria
+# a divergencia que a ADR 0006 removeu; duplicar 40 linhas que leem um arquivo
+# de notas, nao. O navyr-install seguiu o mesmo caminho e tem CI verde.
+#
+# Se o .github algum dia virar publico, este arquivo volta a ser a chamada de
+# uma linha.
 on:
   push:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
       - 'v[0-9]+.[0-9]+.[0-9]+-*'
+  # Permite emitir a release de uma tag que ja existe -- necessario aqui, porque
+  # a v0.1.0 foi criada em 16/09 e o workflow da epoca nao chegou a executar.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag ja existente para a qual emitir a release
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 jobs:
-  release:
-    uses: navyr-io/.github/.github/workflows/release.yml@main
+  notas:
     permissions:
       contents: write
+    name: GitHub Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.tag || github.ref_name }}
+
+      - name: Extrai a seção da versão do CHANGELOG
+        id: notas
+        env:
+          ALVO: ${{ inputs.tag || github.ref_name }}
+        run: |
+          versao="${ALVO#v}"
+          if [ ! -f CHANGELOG.md ]; then
+            echo "::error::CHANGELOG.md não existe. Toda release precisa de nota."
+            exit 1
+          fi
+          # Recorta da linha "## [versao]" até a próxima "## [", exclusiva.
+          # index() em vez de regex: os colchetes da versão formariam classe de
+          # caractere e o padrão nunca casaria.
+          notas="$(awk -v v="## [$versao]" '
+            index($0, v) == 1 {found=1; next}
+            found && index($0, "## [") == 1 {exit}
+            found {print}
+          ' CHANGELOG.md)"
+          if [ -z "$(echo "$notas" | tr -d '[:space:]')" ]; then
+            echo "::error::CHANGELOG.md não tem seção para a versão $versao."
+            exit 1
+          fi
+          {
+            echo 'corpo<<FIM_DAS_NOTAS'
+            echo "$notas"
+            echo 'FIM_DAS_NOTAS'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Cria a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ALVO: ${{ inputs.tag || github.ref_name }}
+        run: |
+          gh release create "$ALVO" \
+            --title "$ALVO" \
+            --notes "${{ steps.notas.outputs.corpo }}" \
+            --verify-tag
