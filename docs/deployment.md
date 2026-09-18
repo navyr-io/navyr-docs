@@ -117,6 +117,126 @@ helm install navyr ./navyr-platform --set secrets.allowInsecureDefaults=true
 
 ---
 
+## Option 3: ECS on Fargate (AWS)
+
+> **Status: complete in code, never applied.** The module passes
+> `terraform validate` and its contract gate, but has never run against AWS.
+> `validate` accepts things `apply` rejects. Treat the first install as the test
+> that is still missing. See navyr-io/navyr-deploy#17.
+
+### Why this path exists
+
+**The control plane does not run on the thing it manages.** Running Navyr inside
+Kubernetes creates the classic circular dependency: the day the tool is most
+needed is the day it may be down with the cluster. For an AWS team that wants to
+manage EKS without standing up an extra cluster just to host the tool, this
+removes an adoption objection.
+
+### What it creates
+
+Nine services in the contract become eight Fargate tasks plus two managed
+services — Postgres becomes RDS, Redis becomes ElastiCache. The eighth task is a
+`trivy server`, which exists only on this path (see below).
+
+Nothing is hand-written: every service, port, image and health path is derived
+from `contrato/plataforma.yaml`, and the gate
+`tests/contract/test_ecs_cobre_o_contrato.py` fails when the module stops
+covering it.
+
+### Before applying: mirror to ECR
+
+Tasks run in private subnets **with no NAT Gateway**, so nothing is pulled from
+`ghcr.io` at runtime. This is ADR 0007 ("the application fetches nothing from
+outside") applied to infrastructure; it also avoids roughly US$32/month of NAT,
+which costs more than the Trivy task.
+
+```bash
+# Creates nothing in AWS — copies images and the vulnerability database.
+# Needs `crane`: the database is an OCI artifact, and `docker buildx
+# imagetools` cannot copy it.
+scripts/ops/espelhar-para-ecr.sh <account>.dkr.ecr.<region>.amazonaws.com 0.1.0
+```
+
+**Put the database mirror on a schedule, not just at install time.** A stale
+vulnerability database does not error — it produces false negatives. Upstream
+publishes daily.
+
+### Install
+
+```bash
+cd terraform/ecs
+terraform init
+
+terraform apply \
+  -var 'regiao=us-east-1' \
+  -var 'dominio=navyr.example.com' \
+  -var 'arn_do_certificado=arn:aws:acm:...' \
+  -var 'registro_ecr=<account>.dkr.ecr.us-east-1.amazonaws.com' \
+  -var 'versao_das_imagens=0.1.0'
+```
+
+Then finish three steps the module deliberately does not do:
+
+1. **Create the ECR repositories.** Output `repositorios_ecr_necessarios` lists
+   the eight names.
+2. **Fill the three external secrets.** Output `segredos_a_preencher` lists them
+   with reasons. They are created empty on purpose: putting a value in Terraform
+   puts it in the state file, which someone eventually commits. Tasks do not
+   start until the values are there — a visible failure instead of a leaked
+   credential.
+3. **Point DNS at the load balancer**, using outputs `dns_do_alb` and
+   `zona_do_alb`.
+
+### Key variables
+
+| Variable | Description |
+|---|---|
+| `versao_das_imagens` | Image tag. Rejects `latest`: a moving tag makes two installs of the same module version run different code. |
+| `registro_ecr` | ECR host. The module never pulls from `ghcr.io`. |
+| `kms.id_da_chave` / `kms.arn_da_chave` | KMS envelope encryption for cluster credentials (ADR 0002). Empty disables it and the orchestrator uses the local key. The key is **not** created by the module: destroying the stack must not take the key that makes database backups readable. |
+| `ia.usar_bedrock` | Grants the gateway `bedrock:InvokeModel` for Navy. Off by default — the alternative is an external provider via `AI_PROVIDER_SECRET_KEY`. |
+| `postgres.protegido_contra_remocao` | On by default. `skip_final_snapshot` is convenient in a lab and deletes a customer database with no safety net. |
+| `permitir_ecs_exec` | Off by default: it is a shell inside the process that holds customer cluster credentials. |
+| `dimensionamento` | CPU and memory per service. The orchestrator gets more — it runs the Trivy client and holds the agent WebSockets. |
+
+### Two things this path does differently, and why
+
+**Redis is encrypted and authenticated.** `transit_encryption_enabled`,
+`at_rest_encryption_enabled` and an AUTH token. This only became possible when
+navyr-collector learned to read `REDIS_URL`: it was the one service that opened
+Redis by bare address, with no password and no TLS, so enabling AUTH would have
+taken it down alone. Redis holds user sessions and multi-tenant operational
+state; leaving it unauthenticated and relying on network isolation alone was the
+alternative, and it was worse.
+
+**Trivy runs as a server.** Measured on the binary embedded in
+`navyr-orchestrator:0.1.0` (Trivy 0.74.0): the vulnerability database is
+**1.3 GB** and takes about 53 seconds to download, and it always lives on the
+filesystem — `--cache-backend redis://` governs the *scan* cache, not the
+database. On Fargate, where the disk is discarded on every deploy, embedding it
+in the orchestrator would cost that download after every rollout.
+
+### The limitation you must read before selling this
+
+**Every orchestrator deploy interrupts the agent tunnels.**
+
+`tunnel.Registry` is a `map[uuid.UUID]*Conn` in process memory with no
+coordination (`internal/tunnel/tunnel.go:255`). With two instances, an agent
+connects to one and a request routed to the other gets `agent not connected` —
+the product breaks rather than degrades. So `desired_count` is 1, and
+`deployment_minimum_healthy_percent` must be 0, because ECS has nowhere to place
+a second task before removing the first.
+
+During that window, cluster actions fail. Agents reconnect on their own
+afterwards. Output `janela_de_indisponibilidade_no_deploy` states this.
+
+The argument for this path is that the control plane survives cluster
+degradation. It does — it does not survive its own deploy. Taking `Registry` out
+of process memory is what would unlock HA, on every path, and it is tracked
+separately.
+
+---
+
 ## Removed: Kustomize
 
 The `k8s/` Kustomize path was retired on 2026-08-19. Helm is the single
