@@ -276,11 +276,12 @@ After the platform is running, connect Kubernetes clusters via the agent:
 # The command includes a pre-generated agent token
 
 # 2. Install the agent in the target cluster
-helm install navyr-agent oci://ghcr.io/navyr-io/charts/navyr-agent --version 0.1.0 \
+helm install navyr-agent oci://ghcr.io/navyr-io/charts/navyr-agent --version 0.1.1 \
   --namespace navyr-agent \
   --create-namespace \
-  --set agent.orchestratorUrl=wss://<NAVYR_HOST>:8083 \
-  --set agent.token=<TOKEN_FROM_UI> \
+  --set image.tag=0.1.0 \
+  --set agent.orchestratorUrl=wss://<NAVYR_HOST> \
+  --set agent.agentSecret=<SECRET_FROM_UI> \
   --set agent.orgId=<ORG_ID> \
   --set agent.clusterId=<CLUSTER_ID>
 
@@ -288,6 +289,25 @@ helm install navyr-agent oci://ghcr.io/navyr-io/charts/navyr-agent --version 0.1
 kubectl -n navyr-agent get pods
 # navyr-agent-xxxx   1/1   Running
 ```
+
+> **Three things changed in this command on 2026-09-19**, after measuring that it
+> did not work as written:
+>
+> - **`--set image.tag=` is required.** Without it the chart refuses to render:
+>   `image.tag is required`. The command above did not set it, so it never got
+>   as far as installing.
+> - **`agent.token` was never a value of this chart** — the real name is
+>   `agent.agentSecret`. The flag was silently ignored and the Secret was
+>   created with an empty `agent-secret`, so the agent came up and never
+>   authenticated. The chart now fails with a named error instead.
+> - **The URL is the edge, not port 8083.** The tunnel enters through `/api` at
+>   the edge and crosses the gateway, which is what Helm and ECS already did;
+>   compose was the odd one out until navyr-deploy#39.
+>
+> The chart's default `image.repository` also pointed at `ghcr.io/navyr/executor`,
+> which does not exist — `docker manifest inspect` returns `denied`. It is
+> `ghcr.io/navyr-io/navyr-agent`. `helm template` and `helm lint` do not pull
+> images, which is why rendering the chart passed while installing it could not.
 
 The cluster will appear as **healthy** in the Navyr UI within 30 seconds.
 
