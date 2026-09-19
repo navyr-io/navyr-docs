@@ -70,7 +70,28 @@ Os segredos são gerados pelo harness e passados **ao chart e às suítes**. Pre
 
 Job `helm-em-kind` no `ci.yml`, rodando `smoke`, `gateway` e `billing`. Roda em `kind` dentro do runner, então não custa nuvem. O caminho ECS fica fora de propósito: exige conta AWS com recurso ligado, que é decisão de custo separada (`#17`).
 
-## 3. O que esta spec NÃO cobre
+## 3. Uma correção de desenho, achada testando o próprio teste
+
+A primeira versão do harness alcançava os serviços por `kubectl port-forward svc/...`. **Isso não atravessa o Service.**
+
+Descoberto em 19/09 plantando `targetPort: 9999` no Service do gateway para provar que o job vale algo: o cluster ficou com o defeito, confirmado por
+
+```
+kubectl -n navyr get svc navyr-gateway -o jsonpath='{.spec.ports[*]}'
+{"port":8080,"protocol":"TCP","targetPort":9999}
+```
+
+e a suíte smoke **passou igual**, porque o port-forward fala com o pod.
+
+O harness verificava, então, os contêineres — não a camada de rede do chart. E Service, DNS interno e NetworkPolicy são justamente o que **só existe no caminho Kubernetes**, e o que o contrato não descreve. Um harness que não os exercita deixa de fora a categoria de defeito mais específica do empacotamento que ele existe para testar.
+
+**Correção:** uma sonda que roda como pod **dentro** do cluster, curlando `http://navyr-<serviço>:<porta>/health`. Ela atravessa resolução de DNS do Service, mapeamento `port`/`targetPort` e as NetworkPolicies.
+
+A sonda leva o rótulo `app=navyr-gateway` porque a `navyr-backend-allow` só admite entrada de gateway e collector — sonda sem rótulo seria barrada, e o teste falharia por motivo errado.
+
+Fica a divisão: **port-forward verifica os contêineres, sonda verifica a rede do chart.** As duas, porque nenhuma cobre a outra.
+
+## 4. O que esta spec NÃO cobre
 
 **O Ingress.** As suítes falam com cada serviço na porta dele; o roteamento por caminho da borda — `/api` → gateway, `/auth` → auth, `/` → frontend — é verificação própria. É onde o caminho ECS mais se parece com o Helm e menos com o compose.
 
@@ -78,7 +99,7 @@ Job `helm-em-kind` no `ci.yml`, rodando `smoke`, `gateway` e `billing`. Roda em 
 
 **A suíte de caos.** Ela manipula contêineres por nome de projeto do compose; adaptá-la a pods é trabalho próprio.
 
-## 4. Verificação
+## 5. Verificação
 
 1. Expandindo as variáveis, as 7 suítes são idênticas às de antes — **feito**;
 2. o harness sobe o chart em `kind` e a suíte smoke passa contra ele;
