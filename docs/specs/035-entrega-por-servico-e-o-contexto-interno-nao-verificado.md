@@ -1,8 +1,20 @@
 # SPEC-035 — Entrega por serviço, e o contexto interno que não era verificado
 
-**Estado:** aceita — executada em 18/09/2026
+**Estado:** implementada e verificada em 18/09/2026
 **Data:** 18/09/2026
 **Card:** navyr-io/navyr-deploy#38
+**Evidência:** § 5 deste documento, com a saída real da verificação executada em
+18/09. Commit `navyr-helm 2378793` (o orchestrator não verificava a assinatura
+do contexto interno). Card `navyr-deploy#38` fechado em 18/09/2026.
+**Formato:** legado — escrita antes da consolidação do formato em 20/09/2026
+(navyr-deploy#46). Tem as seis seções obrigatórias em **conteúdo**, com outro
+vocabulário: `Decisão` no lugar de *Regras e critérios de aceitação*, `O que
+esta spec NÃO resolve` no lugar de *Fora de escopo*, e `Verificação` com a
+saída real no lugar de *Pipeline*. Não tem *Plano de execução* nem *Decisões em
+aberto* porque foi escrita **junto** com a execução, não antes dela.
+Decisão do Erick em 20/09: não inventar plano retroativo para trabalho
+concluído. O `spec-estado.sh` isenta a checagem de seções desta spec, e **só**
+dela e das suas irmãs de numeração; estado e card continuam sendo cobrados.
 **ADR:** 0006 (empacotamentos que divergem), 0008 (autorização fail-closed)
 **Relacionada:** navyr-helm#6 (a catraca), SPEC-034 (contrato de empacotamento), navyr-deploy#40 (teste comportamental)
 

@@ -1,8 +1,21 @@
 # SPEC-036 — Comportamento do caminho Helm, não só a estrutura dele
 
-**Estado:** aceita — em execução em 19/09/2026
+**Estado:** implementada e verificada em 19/09/2026
 **Data:** 19/09/2026
 **Card:** navyr-io/navyr-deploy#40
+**Evidência:** § 5 deste documento. Commit `navyr-helm 1276a90` (as DSNs eram
+independentes da senha do Postgres, e seguir o chart o quebrava). Card
+`navyr-deploy#40` fechado em 19/09/2026 — o campo dizia "em execução" e o
+trabalho já estava fechado no quadro havia um dia.
+**Formato:** legado — escrita antes da consolidação do formato em 20/09/2026
+(navyr-deploy#46). Tem as seis seções obrigatórias em **conteúdo**, com outro
+vocabulário: `Decisão` no lugar de *Regras e critérios de aceitação*, `O que
+esta spec NÃO resolve` no lugar de *Fora de escopo*, e `Verificação` com a
+saída real no lugar de *Pipeline*. Não tem *Plano de execução* nem *Decisões em
+aberto* porque foi escrita **junto** com a execução, não antes dela.
+Decisão do Erick em 20/09: não inventar plano retroativo para trabalho
+concluído. O `spec-estado.sh` isenta a checagem de seções desta spec, e **só**
+dela e das suas irmãs de numeração; estado e card continuam sendo cobrados.
 **ADR:** 0006 (empacotamentos que divergem)
 **Relacionada:** SPEC-034 (contrato), SPEC-035 (entrega por serviço), navyr-deploy#41 (túnel sem cobertura), navyr-deploy#39 (rota do túnel)
 

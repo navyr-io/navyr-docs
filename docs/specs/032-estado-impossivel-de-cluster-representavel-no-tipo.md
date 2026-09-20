@@ -1,8 +1,12 @@
 # SPEC-032 — O estado impossível de cluster ainda é representável no tipo
 
-**Estado:** proposta
+**Estado:** implementada e verificada em 17/09/2026
 **Data:** 16/09/2026
 **Card:** navyr-io/navyr-deploy#19
+**Evidência:** commits `navyr-orchestrator 46531b7` (o teste de integração passa
+a alcançar a constraint que a migration `000030` estreitou) e `navyr-gateway
+255adba` (remove o caminho de escopo morto, e registra por que `QF1001` fica).
+Card `navyr-deploy#19` fechado, com run verde no SHA da `main`.
 **Relacionada:** SPEC-005 R6 (migration `000030`, que estreitou o schema), SPEC-030 (gate do gosec — card irmão)
 
 ## 1. Problema

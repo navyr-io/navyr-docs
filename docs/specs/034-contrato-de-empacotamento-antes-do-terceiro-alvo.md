@@ -1,11 +1,28 @@
 # SPEC-034 — Contrato de empacotamento antes do terceiro alvo
 
-**Estado:** parcialmente recusada — decidido em 18/09/2026
+**Estado:** em execução — desde 18/09/2026
+**Data:** 16/09/2026
+**Card:** navyr-io/navyr-deploy#17
+**ADR:** 0006 (empacotamentos que divergem)
+**Relacionada:** navyr-helm#6 (a catraca, concluída), SPEC-033 (ponto de entrada público)
+**Evidência:** `navyr-deploy/contrato/plataforma.yaml`, gerado das fontes e
+commitado; catraca `tests/contract/test_contrato_esta_atualizado.py`, verificada
+mordendo em três perturbações.
 
-> **A recomendação central desta spec foi recusada.** Ela propunha partir o card
-> em dois e deixar o módulo ECS fora da v0.1.0, pelo princípio de 21/08 ("tudo
-> que depende de custo segura"). Erick decidiu em 18/09 que **o ECS entra na
-> v0.1.0**, sobrepondo esse princípio para este item.
+## Escopo normativo vigente
+
+**O que esta spec manda fazer, hoje:** construir o contrato de empacotamento
+como fonte única, e gerar o módulo ECS a partir dele — **dentro da v0.1.0**.
+
+Tudo abaixo é normativo, com **uma exceção declarada**: a § 2, que propunha
+partir o card e adiar o ECS, foi recusada e está mantida apenas como registro.
+
+### Histórico da decisão de 18/09/2026
+
+> **A recomendação central da versão de 16/09 foi recusada.** Ela propunha
+> partir o card em dois e deixar o módulo ECS **fora** da v0.1.0, pelo princípio
+> de 21/08 ("tudo que depende de custo segura"). Erick decidiu em 18/09 que **o
+> ECS entra na v0.1.0**, sobrepondo esse princípio para este item.
 >
 > O que a spec entregou e segue valendo: o contrato de empacotamento
 > (`contrato/plataforma.yaml`), que existe, é verificado em CI e virou
@@ -21,10 +38,23 @@
 > A ressalva operacional que esta spec registrou também segue valendo, e está
 > agora escrita na documentação de instalação: com `desiredCount: 1` no Fargate,
 > **todo deploy derruba o plano de controle**.
-**Data:** 16/09/2026
-**Card:** navyr-io/navyr-deploy#17
-**ADR:** 0006 (empacotamentos que divergem)
-**Relacionada:** navyr-helm#6 (a catraca, concluída), SPEC-033 (ponto de entrada público)
+
+### Por que este documento foi editado depois de escrito
+
+A regra é que **spec aprovada não é editada** — ela vira a régua, e o que mudar
+durante a implementação vai para a nota de ciclo. Esta edição é exceção
+declarada, não precedente:
+
+A SPEC-034 nunca entrou validamente no estado `aprovada`. Ela foi escrita em
+16/09, teve a recomendação central recusada em 18/09, e ficou num estado
+(`parcialmente recusada`) que **não existe** na máquina decidida em 20/09 — pela
+razão que a decisão registra: se uma spec está `aprovada`, todo o seu conteúdo
+normativo está aprovado, e é isso que a torna régua. Um documento onde metade
+vale obriga quem lê a adivinhar qual metade.
+
+Esta é uma **normalização de spec legada**, feita uma vez, ao classificá-la pela
+primeira vez na máquina nova. Não autoriza editar spec que tenha entrado
+validamente em `aprovada`. Decisão do Erick em 20/09/2026, card navyr-deploy#46.
 
 ## 1. Problema
 
@@ -56,7 +86,10 @@ ausentes do chart, incluindo uma que impedia o auth de subir com
 
 A semente do contrato **já está construída**: é o que o `navyr-helm#6` entregou.
 
-## 2. A recomendação técnica: partir o card em dois
+## 2. A recomendação técnica de 16/09: partir o card em dois — RECUSADA em 18/09
+
+> Mantida como registro. **Não é normativa.** A decisão de 18/09 pôs o ECS
+> dentro da v0.1.0; ver *Escopo normativo vigente*, acima.
 
 O card pede duas coisas de naturezas opostas, e juntá-las é o que o torna caro
 sem necessidade:

@@ -1,8 +1,13 @@
 # SPEC-031 — Tags v0.1.0 pelo caminho de release, provado antes de escalar
 
-**Estado:** proposta
+**Estado:** implementada e verificada em 17/09/2026
 **Data:** 16/09/2026
 **Card:** navyr-io/navyr-deploy#3
+**Evidência:** artefato, não cerimônia — **11 repositórios da org com tag
+`v0.1.0` e release publicada**, conferível por
+`gh repo list navyr-io --json name -q '.[].name' | xargs -I{} gh api repos/navyr-io/{}/tags`.
+Commits `navyr-orchestrator f9c318e` (suprime os 2 CVEs do Trivy que travavam a
+v0.1.0) e `navyr-frontend c668d02`. Card `navyr-deploy#3` fechado.
 **ADR:** 0005 (separação de `ci.yml`, `publish.yml` e `release.yml` por resolução de permissões na partida)
 **Relacionada:** SPEC-030 (gate do gosec — não bloqueia esta), navyr-deploy#4 (re-escopado em 16/09)
 

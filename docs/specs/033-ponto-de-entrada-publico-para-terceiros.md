@@ -1,8 +1,12 @@
 # SPEC-033 — Ponto de entrada público para terceiros
 
-**Estado:** proposta
+**Estado:** implementada e verificada em 17/09/2026
 **Data:** 16/09/2026
 **Card:** navyr-io/navyr-deploy#12
+**Evidência:** o repositório **`navyr-io/navyr-install` existe e é público**,
+criado em 17/09/2026 — `gh api repos/navyr-io/navyr-install -q .visibility`.
+Commits `navyr-deploy 7d8e4e8` (spec/ sai do repositório de instalação) e
+`navyr-helm fb13466`. Card `navyr-deploy#12` fechado.
 **ADR:** 0006 (empacotamentos que divergem)
 **Relacionada:** SPEC-031 (tags v0.1.0), navyr-deploy#1 (branch protection), navyr-deploy#4 (GitHub Team)
 

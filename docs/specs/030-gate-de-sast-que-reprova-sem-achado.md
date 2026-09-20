@@ -1,8 +1,11 @@
 # SPEC-030 — Gate de SAST que reprova sem achado verdadeiro
 
-**Estado:** proposta
+**Estado:** implementada e verificada em 17/09/2026
 **Data:** 16/09/2026
 **Card:** navyr-io/navyr-deploy#18
+**Evidência:** `030-ciclos/cycle-01.md` a `cycle-05.md`, com a saída real de cada
+ciclo. `-exclude=G118` no `go-service.yml` da org (`G702` religada) e `Issues: 0`
+nos 7 serviços Go.
 **Relacionada:** SPEC-029 (o portão de ação crítica, cujo código criou o sink novo)
 
 ## 1. Problema
