@@ -1,4 +1,4 @@
-# SPEC-037 — Cobertura do túnel do agente
+# SPEC-038 — Cobertura do túnel do agente
 
 **Estado:** proposta
 **Data:** 19/09/2026
